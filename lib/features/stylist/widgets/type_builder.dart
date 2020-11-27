@@ -1,11 +1,15 @@
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
 List<String> _typesOptions = ["Basic", "Good", "Experimental"];
 
 class TypeBuilder extends StatefulWidget {
+  final String type;
+
+  const TypeBuilder({Key key, this.type}) : super(key: key);
   @override
   _TypeBuilderState createState() => _TypeBuilderState();
 }
@@ -13,6 +17,20 @@ class TypeBuilder extends StatefulWidget {
 class _TypeBuilderState extends State<TypeBuilder> {
   String _selectedTypes = '';
   bool isExpanded = false;
+
+  @override
+  void initState() {
+    if (widget.type != null) {
+      _selectedTypes = widget.type;
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateTypeOption(widget.type);
+      });
+    }
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(

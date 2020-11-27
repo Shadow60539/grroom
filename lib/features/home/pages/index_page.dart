@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:grroom/data/remote_fetch.dart';
 import 'package:grroom/features/influencer/pages/handle_influencers_page.dart';
 import 'package:grroom/features/stylist/pages/handle_stylist_page.dart';
+import 'package:grroom/models/influencer.dart';
+import 'package:grroom/models/stylist.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -14,23 +18,34 @@ class IndexPage extends StatefulWidget {
   IndexPageState createState() => IndexPageState();
 }
 
-class IndexPageState extends State<IndexPage> with TickerProviderStateMixin {
-  IndexPageState();
-  Future<void> setPage(int page) async {
-    pageNumberNotifier.value = page;
-  }
-
+class IndexPageState extends State<IndexPage> {
   final ValueNotifier<int> pageNumberNotifier = ValueNotifier<int>(0);
   DateTime currentBackPressTime;
+  Future _future;
 
   final ScrollController scrollController = ScrollController();
 
-  List<Widget> _widgets({ScrollController scrollController}) => <Widget>[
-        HandleStylistPage(),
+  List<Widget> _widgets(
+          {ScrollController scrollController,
+          List<Influencer> influencersList,
+          List<Stylist> stylistsList}) =>
+      <Widget>[
+        HandleStylistPage(
+          scrollController: scrollController,
+          stylistsList: stylistsList,
+        ),
         HandleInfluencersPage(
           scrollController: scrollController,
+          influencersList: influencersList,
         ),
       ];
+
+  @override
+  void initState() {
+    super.initState();
+    _future = Future.wait(
+        [RemoteFetch.getAllInfluencers(), RemoteFetch.getAllStylists()]);
+  }
 
   @override
   void dispose() {
@@ -99,95 +114,122 @@ class IndexPageState extends State<IndexPage> with TickerProviderStateMixin {
           return Future.value(true);
         }
       },
-      child: ValueListenableBuilder(
-          key: UniqueKey(),
-          valueListenable: pageNumberNotifier,
-          builder: (BuildContext context, int value, Widget child) {
-            return SafeArea(
-              child: Scaffold(
-                body: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    IndexedStack(
-                      index: pageNumberNotifier.value,
-                      children: _widgets(scrollController: scrollController),
-                    ),
-                    Transform.translate(
-                      offset: Offset(-20, 0),
-                      child: Container(
-                        height: kBottomNavigationBarHeight,
-                        margin: const EdgeInsets.symmetric(horizontal: 50)
-                            .copyWith(bottom: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.black87,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: BottomNavigationBar(
-                            backgroundColor: Colors.black87,
-                            items: <BottomNavigationBarItem>[
-                              BottomNavigationBarItem(
-                                backgroundColor: Colors.white,
-                                icon: FaIcon(
-                                  FontAwesomeIcons.userAlt,
-                                  size: 18,
-                                  color: pageNumberNotifier.value == 0
-                                      ? Colors.white
-                                      : Colors.grey,
-                                ),
-                                title: Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    'Stylist',
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: pageNumberNotifier.value == 0
-                                          ? Colors.white
-                                          : Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+      child: FutureBuilder(
+        future: _future,
+        initialData: [
+          List.generate(1, (index) => Influencer.empty()),
+          List.generate(1, (index) => Stylist.empty())
+        ],
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasError) {
+            return Text(snapshot.error.toString());
+          }
+          return ValueListenableBuilder(
+              key: UniqueKey(),
+              valueListenable: pageNumberNotifier,
+              builder: (BuildContext context, int value, Widget child) {
+                return SafeArea(
+                  child: Scaffold(
+                    body: snapshot.data[0][0].id.isEmpty
+                        ? SpinKitPouringHourglass(
+                            color: Colors.black87,
+                            size: 20,
+                          )
+                        : Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              IndexedStack(
+                                index: pageNumberNotifier.value,
+                                children: _widgets(
+                                    scrollController: scrollController,
+                                    stylistsList: snapshot.data[1],
+                                    influencersList: snapshot.data[0]),
                               ),
-                              BottomNavigationBarItem(
-                                backgroundColor: Colors.white,
-                                icon: FaIcon(
-                                  FontAwesomeIcons.userCircle,
-                                  size: 18,
-                                  color: pageNumberNotifier.value == 1
-                                      ? Colors.white
-                                      : Colors.grey,
-                                ),
-                                title: Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    'Influencer',
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      color: pageNumberNotifier.value == 1
-                                          ? Colors.white
-                                          : Colors.grey,
-                                      fontWeight: FontWeight.w500,
+                              Transform.translate(
+                                offset: Offset(-20, 0),
+                                child: Container(
+                                  height: kBottomNavigationBarHeight,
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 50)
+                                          .copyWith(bottom: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black87,
+                                    borderRadius: BorderRadius.circular(500),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(500),
+                                    child: BottomNavigationBar(
+                                      backgroundColor: Colors.black87,
+                                      items: <BottomNavigationBarItem>[
+                                        BottomNavigationBarItem(
+                                          backgroundColor: Colors.white,
+                                          icon: FaIcon(
+                                            FontAwesomeIcons.userAlt,
+                                            size: 18,
+                                            color: pageNumberNotifier.value == 0
+                                                ? Colors.white
+                                                : Colors.grey,
+                                          ),
+                                          title: Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 4),
+                                            child: Text(
+                                              'Stylist',
+                                              style: TextStyle(
+                                                fontSize: 12.0,
+                                                color:
+                                                    pageNumberNotifier.value ==
+                                                            0
+                                                        ? Colors.white
+                                                        : Colors.grey,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                        BottomNavigationBarItem(
+                                          backgroundColor: Colors.white,
+                                          icon: FaIcon(
+                                            FontAwesomeIcons.userCircle,
+                                            size: 18,
+                                            color: pageNumberNotifier.value == 1
+                                                ? Colors.white
+                                                : Colors.grey,
+                                          ),
+                                          title: Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 4),
+                                            child: Text(
+                                              'Influencer',
+                                              style: TextStyle(
+                                                fontSize: 12.0,
+                                                color:
+                                                    pageNumberNotifier.value ==
+                                                            1
+                                                        ? Colors.white
+                                                        : Colors.grey,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      currentIndex: value,
+                                      fixedColor: Colors.redAccent,
+                                      onTap: _selectedTab,
                                     ),
-                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                               ),
                             ],
-                            currentIndex: value,
-                            fixedColor: Colors.redAccent,
-                            onTap: _selectedTab,
                           ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
+                  ),
+                );
+              });
+        },
+      ),
     );
   }
 }

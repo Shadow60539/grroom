@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:grroom/features/stylist/pages/edit_stylist_page.dart';
 import 'package:grroom/models/stylist.dart';
 
 class StylistDetailsPage extends StatefulWidget {
@@ -273,10 +274,47 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                           size: 12,
                         ),
                         onPressed: () {
-                          // Navigator.of(context).push(MaterialPageRoute(
-                          //     builder: (context) => AddInfluencerScreen(
-                          //           influencer: influencer,
-                          //         )));
+                          Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (BuildContext context,
+                                    Animation<double> animation,
+                                    Animation<double> secondaryAnimation) {
+                                  return Scaffold(
+                                    appBar: AppBar(
+                                      automaticallyImplyLeading: false,
+                                      leading: IconButton(
+                                        icon: Icon(Icons.arrow_back_ios,
+                                            size: 16),
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                      backgroundColor: Colors.black87,
+                                      title: Text(
+                                        'Edit Stylist',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                    body: EditStylistPage(),
+                                  );
+                                },
+                                transitionsBuilder: (BuildContext context,
+                                    Animation<double> animation,
+                                    Animation<double> secondaryAnimation,
+                                    Widget child) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: SlideTransition(
+                                      position: new Tween<Offset>(
+                                        begin: const Offset(-1.0, 0.0),
+                                        end: Offset.zero,
+                                      ).animate(CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeIn)),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                              ));
                         }),
                   ),
                 )

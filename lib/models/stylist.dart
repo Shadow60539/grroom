@@ -35,18 +35,30 @@ class Stylist {
   final String place;
 
   factory Stylist.fromJson(Map<String, dynamic> json) {
-    print(json);
     return Stylist(
-        // style: Style.fromJson(json["style"]),
-        // location: Location.fromJson(json["location"]),
-        // events: List<String>.from(json["events"].map((x) => x)),
-        // season: List<String>.from(json["season"].map((x) => x)),
-        // createdAt: DateTime.parse(json["createdAt"]),
-        // id: json["_id"],
+        style: Style.fromJson(json["style"]),
+        location: Location.fromJson(json["location"]),
+        events: List<String>.from(json["events"].map((x) => x)),
+        season: List<String>.from(json["season"].map((x) => x)),
+        createdAt: DateTime.parse(json["createdAt"]),
+        id: json["_id"],
         influencerId: json["influencerID"],
-        // type: json["type"],
-        // place: json["place"],
+        type: json["type"],
+        place: json["place"],
         image: json['image'] ?? '');
+  }
+  factory Stylist.empty() {
+    return Stylist(
+        style: Style.empty(),
+        location: Location.empty(),
+        events: [],
+        season: [],
+        createdAt: DateTime.now(),
+        id: "",
+        influencerId: "",
+        type: "",
+        place: "",
+        image: '');
   }
 
   Map<String, dynamic> toJson() => {
@@ -76,6 +88,10 @@ class Location {
         type: json["type"],
         coordinates:
             List<double>.from(json["coordinates"].map((x) => x.toDouble())),
+      );
+  factory Location.empty() => Location(
+        type: "",
+        coordinates: [],
       );
 
   Map<String, dynamic> toJson() => {

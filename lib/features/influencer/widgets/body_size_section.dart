@@ -1,5 +1,6 @@
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -15,12 +16,19 @@ class BodySizeSection extends StatefulWidget {
 }
 
 class _BodySizeSectionState extends State<BodySizeSection> {
-  String _selectedTypes;
+  String _selectedTypes = '';
   bool isExpanded = false;
 
   @override
   void initState() {
-    _selectedTypes = widget.selectedTypes ?? '';
+    if (widget.selectedTypes != null) {
+      _selectedTypes = widget.selectedTypes;
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateBodySize(widget.selectedTypes);
+      });
+    }
+
     super.initState();
   }
 

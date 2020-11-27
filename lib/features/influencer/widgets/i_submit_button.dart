@@ -11,7 +11,12 @@ import 'package:http_parser/http_parser.dart';
 import 'package:provider/provider.dart';
 
 class ISubmitButton extends StatefulWidget {
-  const ISubmitButton({Key key}) : super(key: key);
+  final bool isEdit;
+  final String id;
+  final String networkImage;
+  const ISubmitButton(
+      {Key key, this.isEdit = false, this.networkImage, this.id})
+      : super(key: key);
 
   @override
   _ISubmitButtonState createState() => _ISubmitButtonState();
@@ -19,20 +24,24 @@ class ISubmitButton extends StatefulWidget {
 
 class _ISubmitButtonState extends State<ISubmitButton> {
   bool isLoading = false;
+  bool isImageDifferent = false;
   @override
   Widget build(BuildContext context) {
     final AllProvider _provider = Provider.of<AllProvider>(context);
 
+    isImageDifferent = _provider.influencerPageImage != widget.networkImage;
+
     bool isAllOptionsChosen = (_provider.igHandle.isNotEmpty &&
-        _provider.firstName.isNotEmpty &&
-        _provider.influencerPageImage.isNotEmpty &&
-        _provider.lastName.isNotEmpty &&
-        _provider.followerCount != 0 &&
-        _provider.counrty.isNotEmpty &&
-        _provider.bodySize.isNotEmpty &&
-        _provider.bodyShape.isNotEmpty &&
-        _provider.speciality.isNotEmpty &&
-        _provider.underTone.isNotEmpty);
+            _provider.firstName.isNotEmpty &&
+            _provider.influencerPageImage.isNotEmpty &&
+            _provider.lastName.isNotEmpty &&
+            _provider.followerCount != 0 &&
+            _provider.counrty.isNotEmpty &&
+            _provider.bodySize.isNotEmpty &&
+            _provider.bodyShape.isNotEmpty &&
+            _provider.speciality.isNotEmpty &&
+            _provider.underTone.isNotEmpty) ||
+        widget.isEdit;
 
     return AnimatedContainer(
       margin: const EdgeInsets.only(top: 30, left: 10, right: 10, bottom: 20),
@@ -48,9 +57,10 @@ class _ISubmitButtonState extends State<ISubmitButton> {
             side: BorderSide(color: Colors.black87, width: 2),
             borderRadius: BorderRadius.circular(5)),
         onPressed: () {
-          print('${_provider.igHandle}');
           if (isLoading) {
           } else if (isAllOptionsChosen) {
+            submitData(context);
+          } else if (widget.isEdit) {
             submitData(context);
           } else {}
         },
@@ -75,9 +85,6 @@ class _ISubmitButtonState extends State<ISubmitButton> {
   void submitData(context) async {
     final provider = Provider.of<AllProvider>(context, listen: false);
 
-    MultipartFile image = await MultipartFile.fromFile(
-        provider.influencerPageImage,
-        contentType: MediaType('image', 'jpg'));
     setState(() {
       isLoading = true;
     });
@@ -99,7 +106,12 @@ class _ISubmitButtonState extends State<ISubmitButton> {
     };
 
     FormData formData = FormData.fromMap(body);
-    formData.files.add(MapEntry('image', image));
+    if (isImageDifferent) {
+      MultipartFile image = await MultipartFile.fromFile(
+          provider.influencerPageImage,
+          contentType: MediaType('image', 'jpg'));
+      formData.files.add(MapEntry('image', image));
+    }
     Dio dio = Dio();
     dio.options.baseUrl = 'https://groombackend.herokuapp.com/api';
     dio.options.headers = {
@@ -107,11 +119,26 @@ class _ISubmitButtonState extends State<ISubmitButton> {
       "Content-Type": "multipart/form-data"
     };
 
-    final response =
-        await dio.post('/v1/influencer', data: formData).catchError((onError) {
-      DioError dioError = onError;
-      print(jsonDecode(dioError.response.toString()));
-    });
+    String errorMessage;
+
+    final response = widget.isEdit
+        ? await dio
+            .patch('/v1/influencer/${widget.id}', data: formData)
+            .catchError((onError) {
+            DioError dioError = onError;
+            errorMessage =
+                jsonDecode(dioError.response.toString())['message'].toString();
+            print(jsonDecode(dioError.response.toString()));
+          })
+        : await dio
+            .post('/v1/influencer', data: formData)
+            .catchError((onError) {
+            DioError dioError = onError;
+            errorMessage =
+                jsonDecode(dioError.response.toString())['message'].toString();
+
+            print(jsonDecode(dioError.response.toString()));
+          });
 
     setState(() {
       isLoading = false;
@@ -122,6 +149,13 @@ class _ISubmitButtonState extends State<ISubmitButton> {
           context: context,
           child: FeedbackDialog(
             isSuccess: true,
+          ));
+    } else {
+      showDialog(
+          context: context,
+          child: FeedbackDialog(
+            isSuccess: false,
+            errorMessage: errorMessage,
           ));
     }
   }

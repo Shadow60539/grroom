@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,8 +15,10 @@ import 'influencer_page.dart';
 
 class HandleInfluencersPage extends StatefulWidget {
   final ScrollController scrollController;
+  final List<Influencer> influencersList;
 
-  const HandleInfluencersPage({Key key, this.scrollController})
+  const HandleInfluencersPage(
+      {Key key, this.scrollController, this.influencersList})
       : super(key: key);
   @override
   _HandleInfluencersPageState createState() => _HandleInfluencersPageState();
@@ -27,9 +30,11 @@ class _HandleInfluencersPageState extends State<HandleInfluencersPage>
   String token;
   AnimationController topAnimationController;
   Animation topAnimation;
+  List<Influencer> influencers = [];
 
   @override
   void initState() {
+    influencers = widget.influencersList;
     topAnimationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..forward()
@@ -51,213 +56,176 @@ class _HandleInfluencersPageState extends State<HandleInfluencersPage>
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: FutureBuilder(
-            future: _getInfluencersList(),
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (snapshot.hasData) {
-                var data = snapshot.data;
-                if (data["status"] == "error") {
-                  return Column(
-                    children: [
-                      Text("Ooops! Some error occured"),
-                      RaisedButton.icon(
-                        icon: Icon(Icons.refresh),
-                        label: Text("Refresh"),
-                        onPressed: () => setState(() {}),
-                      )
-                    ],
-                  );
-                }
-                List<Influencer> influencers = <Influencer>[];
-                data["data"].forEach(
-                    (inf) => influencers.add(Influencer.fromResp(inf)));
-
-                influencers = influencers.reversed.toList();
-
-                return CustomScrollView(
-                  controller: widget.scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    SliverAppBar(
-                      elevation: 1,
-                      backgroundColor: Colors.white,
-                      automaticallyImplyLeading: false,
-                      stretch: true,
-                      floating: true,
-                      expandedHeight: 60,
-                      flexibleSpace: FlexibleSpaceBar(
-                        centerTitle: true,
-                        title: null,
-                        background: InkWell(
-                          onTap: () {
-                            showSearch(
-                                context: context,
-                                delegate: TheSearch(influencers,
-                                    contextPage: context));
-                          },
-                          child: Container(
-                            height: 40,
-                            alignment: Alignment.center,
-                            width: double.maxFinite,
-                            decoration: const BoxDecoration(
-                              color: Colors.black87,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search,
-                                  color: Colors.white54,
-                                  size: 16,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Text(
-                                  'Search influencers',
-                                  style: TextStyle(
-                                      color: Colors.white54,
-                                      letterSpacing: 0.5,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        stretchModes: [
-                          StretchMode.zoomBackground,
-                        ],
-                      ),
+        body: CustomScrollView(
+          controller: widget.scrollController,
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              elevation: 1,
+              backgroundColor: Colors.white,
+              automaticallyImplyLeading: false,
+              stretch: true,
+              floating: true,
+              expandedHeight: 60,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: null,
+                background: InkWell(
+                  onTap: () {
+                    showSearch(
+                        context: context,
+                        delegate: InfluencerSearch(influencers,
+                            contextPage: context));
+                  },
+                  child: Container(
+                    height: 40,
+                    alignment: Alignment.center,
+                    width: double.maxFinite,
+                    decoration: const BoxDecoration(
+                      color: Colors.black87,
                     ),
-                    SliverList(
-                      delegate: SliverChildListDelegate(
-                        [
-                          ListView.builder(
-                              padding:
-                                  const EdgeInsets.only(top: 20, bottom: 100),
-                              physics: const BouncingScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: influencers.length > 12
-                                  ? influencers.length + 1
-                                  : influencers.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                if (index == influencers.length &&
-                                    influencers.length > 12) {
-                                  return InkWell(
-                                    onTap: () {
-                                      widget.scrollController.animateTo(0.0,
-                                          duration:
-                                              const Duration(milliseconds: 800),
-                                          curve: Curves.linearToEaseOut);
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.only(top: 20),
-                                      alignment: Alignment.center,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text('Back to top',
-                                              style: GoogleFonts.nunito(
-                                                color: Colors.grey,
-                                              )),
-                                          SlideTransition(
-                                            position: topAnimation,
-                                            child: Icon(
-                                              Icons.arrow_upward,
-                                              size: 14,
-                                            ),
-                                          )
-                                        ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search,
+                          color: Colors.white54,
+                          size: 16,
+                        ),
+                        SizedBox(
+                          width: 4,
+                        ),
+                        Text(
+                          'Search influencers',
+                          style: TextStyle(
+                              color: Colors.white54,
+                              letterSpacing: 0.5,
+                              fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                stretchModes: [
+                  StretchMode.zoomBackground,
+                ],
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildListDelegate(
+                [
+                  ListView.builder(
+                      padding: const EdgeInsets.only(top: 20, bottom: 100),
+                      physics: const BouncingScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: influencers.length > 12
+                          ? influencers.length + 1
+                          : influencers.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        if (index == influencers.length &&
+                            influencers.length > 12) {
+                          return InkWell(
+                            onTap: () {
+                              widget.scrollController.animateTo(0.0,
+                                  duration: const Duration(milliseconds: 800),
+                                  curve: Curves.linearToEaseOut);
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 20),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Back to top',
+                                      style: GoogleFonts.nunito(
+                                        color: Colors.grey,
+                                      )),
+                                  SlideTransition(
+                                    position: topAnimation,
+                                    child: Icon(
+                                      Icons.arrow_upward,
+                                      size: 14,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return Card(
+                          elevation: 5,
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5)),
+                          shadowColor: Image.asset('assets/designer.jpg').color,
+                          child: ListTile(
+                            isThreeLine: true,
+                            leading: CircleAvatar(
+                              radius: 26,
+                              backgroundColor: Colors.black87,
+                              child: influencers[index].image.isEmpty
+                                  ? Hero(
+                                      tag: influencers[index].id,
+                                      child: ClipRRect(
+                                        child: Image.asset(
+                                          "assets/designer.jpg",
+                                          height: 50,
+                                          width: 50,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                      ),
+                                    )
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(100),
+                                      child: Image.network(
+                                        influencers[index].image,
+                                        height: 50,
+                                        width: 50,
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                  );
-                                }
-                                return Card(
-                                  elevation: 5,
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5)),
-                                  shadowColor:
-                                      Image.asset('assets/designer.jpg').color,
-                                  child: ListTile(
-                                    isThreeLine: true,
-                                    leading: CircleAvatar(
-                                      radius: 26,
-                                      backgroundColor: Colors.black87,
-                                      child: influencers[index].image.isEmpty
-                                          ? Hero(
-                                              tag: influencers[index].id,
-                                              child: ClipRRect(
-                                                child: Image.asset(
-                                                  "assets/designer.jpg",
-                                                  height: 50,
-                                                  width: 50,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(100),
-                                              ),
-                                            )
-                                          : ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(100),
-                                              child: Image.network(
-                                                influencers[index].image,
-                                                height: 50,
-                                                width: 50,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                    ),
-                                    title: Text(influencers[index].igUsername),
-                                    subtitle: Text(
-                                        "${influencers[index].firstName} ${influencers[index].lastName}"),
-                                    onTap: () => Navigator.of(context)
-                                        .push(PageRouteBuilder(
-                                      pageBuilder: (BuildContext context,
-                                          Animation<double> animation,
-                                          Animation<double>
-                                              secondaryAnimation) {
-                                        return InfluencerDetailsPage(
-                                          influencer: influencers[index],
-                                        );
-                                      },
-                                      transitionsBuilder: (BuildContext context,
-                                          Animation<double> animation,
-                                          Animation<double> secondaryAnimation,
-                                          Widget child) {
-                                        return FadeTransition(
-                                          opacity: animation,
-                                          child: SlideTransition(
-                                            position: new Tween<Offset>(
-                                              begin: const Offset(1.0, 0.0),
-                                              end: Offset.zero,
-                                            ).animate(CurvedAnimation(
-                                                parent: animation,
-                                                curve: Curves.easeIn)),
-                                            child: child,
-                                          ),
-                                        );
-                                      },
-                                    )),
+                            ),
+                            title: Text(influencers[index].igUsername),
+                            subtitle: Text(
+                                "${influencers[index].firstName} ${influencers[index].lastName}"),
+                            onTap: () =>
+                                Navigator.of(context).push(PageRouteBuilder(
+                              pageBuilder: (BuildContext context,
+                                  Animation<double> animation,
+                                  Animation<double> secondaryAnimation) {
+                                return InfluencerDetailsPage(
+                                  influencer: influencers[index],
+                                );
+                              },
+                              transitionsBuilder: (BuildContext context,
+                                  Animation<double> animation,
+                                  Animation<double> secondaryAnimation,
+                                  Widget child) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: new Tween<Offset>(
+                                      begin: const Offset(1.0, 0.0),
+                                      end: Offset.zero,
+                                    ).animate(CurvedAnimation(
+                                        parent: animation,
+                                        curve: Curves.easeIn)),
+                                    child: child,
                                   ),
                                 );
-                              })
-                        ],
-                      ),
-                    )
-                  ],
-                );
-              } else if (snapshot.hasError) {
-                return Text("error");
-              }
-              return SpinKitPouringHourglass(
-                color: Colors.black87,
-                size: 20,
-              );
-            }),
+                              },
+                            )),
+                          ),
+                        );
+                      })
+                ],
+              ),
+            )
+          ],
+        ),
         floatingActionButton: FloatingActionButton(
             heroTag: UniqueKey(),
             mini: true,
@@ -274,6 +242,14 @@ class _HandleInfluencersPageState extends State<HandleInfluencersPage>
                       Animation<double> secondaryAnimation) {
                     return Scaffold(
                       appBar: AppBar(
+                        automaticallyImplyLeading: false,
+                        leading: Transform.rotate(
+                          angle: -pi / 2,
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_back_ios, size: 16),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
                         backgroundColor: Colors.black87,
                         title: Text(
                           'Add Influencer',
@@ -300,17 +276,10 @@ class _HandleInfluencersPageState extends State<HandleInfluencersPage>
       ),
     );
   }
-
-  Future<dynamic> _getInfluencersList() async {
-    String _endpoint = "https://groombackend.herokuapp.com/api/v1/influencer";
-    var resp = await http.get(_endpoint,
-        headers: {HttpHeaders.authorizationHeader: "Bearer $token"});
-    return json.decode(resp.body);
-  }
 }
 
-class TheSearch extends SearchDelegate<String> {
-  TheSearch(this.list, {this.contextPage});
+class InfluencerSearch extends SearchDelegate<String> {
+  InfluencerSearch(this.list, {this.contextPage});
 
   final BuildContext contextPage;
   final List<Influencer> list;

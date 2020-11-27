@@ -4,14 +4,24 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:grroom/utils/all_provider.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:provider/provider.dart';
+
+import 'package:grroom/utils/all_provider.dart';
 
 import 'feedback_dialog.dart';
 
 class SubmitButton extends StatefulWidget {
-  const SubmitButton({Key key}) : super(key: key);
+  final bool isEdit;
+  final String id;
+  final String networkImage;
+
+  const SubmitButton({
+    Key key,
+    this.isEdit,
+    this.id,
+    this.networkImage,
+  }) : super(key: key);
 
   @override
   _SubmitButtonState createState() => _SubmitButtonState();
@@ -19,15 +29,20 @@ class SubmitButton extends StatefulWidget {
 
 class _SubmitButtonState extends State<SubmitButton> {
   bool isLoading = false;
+  bool isImageDifferent = false;
+
   @override
   Widget build(BuildContext context) {
     final AllProvider _provider = Provider.of<AllProvider>(context);
+
+    isImageDifferent = _provider.stylistPageImage != widget.networkImage;
 
     bool isAllOptionsChosen = (_provider.influencerCode.isNotEmpty &&
         _provider.seasonsOption.isNotEmpty &&
         _provider.stylistPageImage.isNotEmpty &&
         _provider.stylesOption.isNotEmpty &&
         _provider.eventsOption.isNotEmpty &&
+        _provider.location.isNotEmpty &&
         _provider.location.isNotEmpty &&
         _provider.typeOption.isNotEmpty);
 
@@ -46,10 +61,10 @@ class _SubmitButtonState extends State<SubmitButton> {
             borderRadius: BorderRadius.circular(5)),
         onPressed: () {
           if (isLoading) {
-          } else {
-            if (isAllOptionsChosen) {
-              submitData(context);
-            }
+          } else if (isAllOptionsChosen) {
+            submitData(context);
+          } else if (widget.isEdit) {
+            submitData(context);
           }
         },
         child: isLoading
@@ -72,9 +87,7 @@ class _SubmitButtonState extends State<SubmitButton> {
 
   void submitData(context) async {
     final provider = Provider.of<AllProvider>(context, listen: false);
-    MultipartFile image = await MultipartFile.fromFile(
-        provider.stylistPageImage,
-        contentType: MediaType('image', 'jpg'));
+
     setState(() {
       isLoading = true;
     });
@@ -94,7 +107,13 @@ class _SubmitButtonState extends State<SubmitButton> {
     };
 
     FormData formData = FormData.fromMap(body);
-    formData.files.add(MapEntry('image', image));
+
+    if (isImageDifferent) {
+      MultipartFile image = await MultipartFile.fromFile(
+          provider.stylistPageImage,
+          contentType: MediaType('image', 'jpg'));
+      formData.files.add(MapEntry('image', image));
+    }
 
     Dio dio = Dio();
     dio.options.baseUrl = 'https://groombackend.herokuapp.com/api';
@@ -103,17 +122,23 @@ class _SubmitButtonState extends State<SubmitButton> {
       "Content-Type": "multipart/form-data"
     };
 
-    final response =
-        await dio.post('/v1/meta', data: formData).catchError((onError) {
-      DioError dioError = onError;
-      print(jsonDecode(dioError.response.toString())["message"]);
-    });
+    final response = widget.isEdit
+        ? await dio
+            .patch('/v1/meta/${widget.id}', data: formData)
+            .catchError((onError) {
+            DioError dioError = onError;
+            print(jsonDecode(dioError.response.toString())["message"]);
+          })
+        : await dio.post('/v1/meta', data: formData).catchError((onError) {
+            DioError dioError = onError;
+            print(jsonDecode(dioError.response.toString())["message"]);
+          });
 
     setState(() {
       isLoading = false;
     });
 
-    if (response?.statusCode == 201) {
+    if (response?.statusCode == 201 || response.data["status"] == 'success') {
       showDialog(context: context, child: FeedbackDialog(isSuccess: true));
     } else {
       showDialog(context: context, child: FeedbackDialog(isSuccess: false));

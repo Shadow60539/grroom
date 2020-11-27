@@ -13,8 +13,10 @@ import 'package:http/http.dart' as http;
 
 class HandleStylistPage extends StatefulWidget {
   final ScrollController scrollController;
+  final List<Stylist> stylistsList;
 
-  const HandleStylistPage({Key key, this.scrollController}) : super(key: key);
+  const HandleStylistPage({Key key, this.scrollController, this.stylistsList})
+      : super(key: key);
   @override
   _HandleStylistPageState createState() => _HandleStylistPageState();
 }
@@ -25,9 +27,12 @@ class _HandleStylistPageState extends State<HandleStylistPage>
   String token;
   AnimationController topAnimationController;
   Animation topAnimation;
+  List<Stylist> stylists = [];
 
   @override
   void initState() {
+    stylists = widget.stylistsList;
+
     topAnimationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800))
       ..forward()
@@ -48,232 +53,174 @@ class _HandleStylistPageState extends State<HandleStylistPage>
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: FutureBuilder(
-            future: _getStylistsList(),
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (snapshot.hasData) {
-                var data = snapshot.data;
-                if (data["status"] == "error") {
-                  return Container(
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    decoration: BoxDecoration(color: Colors.black87),
-                    child: Column(
+        body: CustomScrollView(
+          controller: widget.scrollController,
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              elevation: 1,
+              backgroundColor: Colors.white,
+              automaticallyImplyLeading: false,
+              stretch: true,
+              floating: true,
+              expandedHeight: 60,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: null,
+                background: InkWell(
+                  onTap: () {
+                    showSearch(
+                        context: context,
+                        delegate:
+                            StylistSearch(stylists, contextPage: context));
+                  },
+                  child: Container(
+                    height: 40,
+                    alignment: Alignment.center,
+                    width: double.maxFinite,
+                    decoration: const BoxDecoration(
+                      color: Colors.black87,
+                    ),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          "Ooops! Some error occured",
-                          style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.w200),
+                        Icon(
+                          Icons.search,
+                          color: Colors.white54,
+                          size: 16,
                         ),
                         SizedBox(
-                          height: 10,
+                          width: 4,
                         ),
-                        RaisedButton.icon(
-                          color: Colors.white,
-                          icon: Icon(
-                            Icons.refresh,
-                            size: 14,
-                          ),
-                          label: Text(
-                            "Refresh",
-                            style: TextStyle(fontWeight: FontWeight.w400),
-                          ),
-                          onPressed: () => setState(() {}),
-                        )
+                        Text(
+                          'Search stylists',
+                          style: TextStyle(
+                              color: Colors.white54,
+                              letterSpacing: 0.5,
+                              fontWeight: FontWeight.w400),
+                        ),
                       ],
                     ),
-                  );
-                }
-                List<Stylist> stylists = <Stylist>[];
-                data["data"].forEach(
-                    (stylist) => stylists.add(Stylist.fromJson(stylist)));
-
-                stylists = stylists.reversed.toList();
-
-                return CustomScrollView(
-                  controller: widget.scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    SliverAppBar(
-                      elevation: 1,
-                      backgroundColor: Colors.white,
-                      automaticallyImplyLeading: false,
-                      stretch: true,
-                      floating: true,
-                      expandedHeight: 60,
-                      flexibleSpace: FlexibleSpaceBar(
-                        centerTitle: true,
-                        title: null,
-                        background: InkWell(
-                          onTap: () {
-                            showSearch(
-                                context: context,
-                                delegate: StylistSearch(stylists,
-                                    contextPage: context));
-                          },
-                          child: Container(
-                            height: 40,
-                            alignment: Alignment.center,
-                            width: double.maxFinite,
-                            decoration: const BoxDecoration(
-                              color: Colors.black87,
+                  ),
+                ),
+                stretchModes: [
+                  StretchMode.zoomBackground,
+                ],
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildListDelegate(
+                [
+                  ListView.builder(
+                      padding: const EdgeInsets.only(top: 20, bottom: 100),
+                      physics: const BouncingScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: stylists.length > 12
+                          ? stylists.length + 1
+                          : stylists.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        if (index == stylists.length && stylists.length > 12) {
+                          return InkWell(
+                            onTap: () {
+                              widget.scrollController.animateTo(0.0,
+                                  duration: const Duration(milliseconds: 800),
+                                  curve: Curves.linearToEaseOut);
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 20),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Back to top',
+                                      style: GoogleFonts.nunito(
+                                        color: Colors.grey,
+                                      )),
+                                  SlideTransition(
+                                    position: topAnimation,
+                                    child: Icon(
+                                      Icons.arrow_upward,
+                                      size: 14,
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search,
-                                  color: Colors.white54,
-                                  size: 16,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Text(
-                                  'Search stylists',
-                                  style: TextStyle(
-                                      color: Colors.white54,
-                                      letterSpacing: 0.5,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        stretchModes: [
-                          StretchMode.zoomBackground,
-                        ],
-                      ),
-                    ),
-                    SliverList(
-                      delegate: SliverChildListDelegate(
-                        [
-                          ListView.builder(
-                              padding:
-                                  const EdgeInsets.only(top: 20, bottom: 100),
-                              physics: const BouncingScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: stylists.length > 12
-                                  ? stylists.length + 1
-                                  : stylists.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                if (index == stylists.length &&
-                                    stylists.length > 12) {
-                                  return InkWell(
-                                    onTap: () {
-                                      widget.scrollController.animateTo(0.0,
-                                          duration:
-                                              const Duration(milliseconds: 800),
-                                          curve: Curves.linearToEaseOut);
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.only(top: 20),
-                                      alignment: Alignment.center,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text('Back to top',
-                                              style: GoogleFonts.nunito(
-                                                color: Colors.grey,
-                                              )),
-                                          SlideTransition(
-                                            position: topAnimation,
-                                            child: Icon(
-                                              Icons.arrow_upward,
-                                              size: 14,
-                                            ),
-                                          )
-                                        ],
-                                      ),
+                          );
+                        }
+                        return InkWell(
+                          child: Card(
+                            elevation: 5,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5)),
+                            shadowColor:
+                                Image.asset('assets/designer.jpg').color,
+                            child: ListTile(
+                              isThreeLine: true,
+                              onTap: () =>
+                                  Navigator.of(context).push(PageRouteBuilder(
+                                pageBuilder: (BuildContext context,
+                                    Animation<double> animation,
+                                    Animation<double> secondaryAnimation) {
+                                  return StylistDetailsPage(
+                                    stylist: stylists[index],
+                                  );
+                                },
+                                transitionsBuilder: (BuildContext context,
+                                    Animation<double> animation,
+                                    Animation<double> secondaryAnimation,
+                                    Widget child) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: SlideTransition(
+                                      position: new Tween<Offset>(
+                                        begin: const Offset(1.0, 0.0),
+                                        end: Offset.zero,
+                                      ).animate(CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeIn)),
+                                      child: child,
                                     ),
                                   );
-                                }
-                                return InkWell(
-                                  child: Card(
-                                    elevation: 5,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 5),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5)),
-                                    shadowColor:
-                                        Image.asset('assets/designer.jpg')
-                                            .color,
-                                    child: ListTile(
-                                      isThreeLine: true,
-                                      onTap: () => Navigator.of(context)
-                                          .push(PageRouteBuilder(
-                                        pageBuilder: (BuildContext context,
-                                            Animation<double> animation,
-                                            Animation<double>
-                                                secondaryAnimation) {
-                                          return StylistDetailsPage(
-                                            stylist: stylists[index],
-                                          );
-                                        },
-                                        transitionsBuilder:
-                                            (BuildContext context,
-                                                Animation<double> animation,
-                                                Animation<double>
-                                                    secondaryAnimation,
-                                                Widget child) {
-                                          return FadeTransition(
-                                            opacity: animation,
-                                            child: SlideTransition(
-                                              position: new Tween<Offset>(
-                                                begin: const Offset(1.0, 0.0),
-                                                end: Offset.zero,
-                                              ).animate(CurvedAnimation(
-                                                  parent: animation,
-                                                  curve: Curves.easeIn)),
-                                              child: child,
-                                            ),
-                                          );
-                                        },
-                                      )),
-                                      leading: CircleAvatar(
-                                        radius: 26,
-                                        backgroundColor: Colors.black87,
-                                        child: stylists[index].image.isEmpty
-                                            ? ClipRRect(
-                                                child: Image.asset(
-                                                  "assets/designer.jpg",
-                                                  height: 50,
-                                                  width: 50,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(100),
-                                              )
-                                            : ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(100),
-                                                child: Image.network(
-                                                  stylists[index].image,
-                                                  height: 50,
-                                                  width: 50,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
+                                },
+                              )),
+                              leading: CircleAvatar(
+                                radius: 26,
+                                backgroundColor: Colors.black87,
+                                child: stylists[index].image.isEmpty
+                                    ? ClipRRect(
+                                        child: Image.asset(
+                                          "assets/designer.jpg",
+                                          height: 50,
+                                          width: 50,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                      )
+                                    : ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(100),
+                                        child: Image.network(
+                                          stylists[index].image,
+                                          height: 50,
+                                          width: 50,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
-                                      title: Text(stylists[index].id),
-                                    ),
-                                  ),
-                                );
-                              })
-                        ],
-                      ),
-                    )
-                  ],
-                );
-              } else if (snapshot.hasError) {
-                return Text("error");
-              }
-              return SpinKitPouringHourglass(
-                color: Colors.black87,
-                size: 20,
-              );
-            }),
+                              ),
+                              title: Text(stylists[index].id),
+                            ),
+                          ),
+                        );
+                      })
+                ],
+              ),
+            )
+          ],
+        ),
         floatingActionButton: FloatingActionButton(
             heroTag: UniqueKey(),
             mini: true,
@@ -287,28 +234,21 @@ class _HandleStylistPageState extends State<HandleStylistPage>
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (BuildContext context) => Scaffold(
                       appBar: AppBar(
-                        title: Text(
-                          "Add Stylist",
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w400),
+                        automaticallyImplyLeading: false,
+                        leading: IconButton(
+                          icon: Icon(Icons.arrow_back_ios, size: 16),
+                          onPressed: () => Navigator.pop(context),
                         ),
                         backgroundColor: Colors.black87,
+                        title: Text(
+                          'Add Stylist',
+                          style: TextStyle(fontSize: 14),
+                        ),
                       ),
                       body: StylistPage(),
                     )))),
       ),
     );
-  }
-
-  Future<dynamic> _getStylistsList() async {
-    String headerToken = await storage.read(key: "token");
-    String _endpoint = "https://groombackend.herokuapp.com/api/v1/meta";
-    http.Response resp = await http.get(_endpoint,
-        headers: {HttpHeaders.authorizationHeader: "Bearer $headerToken"});
-
-    print(jsonDecode(resp.body));
-
-    return json.decode(resp.body);
   }
 }
 
@@ -360,7 +300,7 @@ class StylistSearch extends SearchDelegate<String> {
     if (suggestions.isEmpty)
       return Center(
         child: Text(
-          'No influencer found with \'$query\'',
+          'No stylist found with \'$query\'',
           style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w300),
         ),
       );

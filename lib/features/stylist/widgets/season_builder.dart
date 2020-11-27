@@ -1,11 +1,15 @@
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
 List<String> _seasonOptions = ["Summer", "Winter", "Autumn", "Spring"];
 
 class SeasonBuilder extends StatefulWidget {
+  final List<String> seasons;
+
+  const SeasonBuilder({Key key, this.seasons}) : super(key: key);
   @override
   _SeasonBuilderState createState() => _SeasonBuilderState();
 }
@@ -13,6 +17,18 @@ class SeasonBuilder extends StatefulWidget {
 class _SeasonBuilderState extends State<SeasonBuilder> {
   bool isExpanded = false;
   List<String> selectedSeason = [];
+
+  @override
+  void initState() {
+    if (widget.seasons != null) {
+      selectedSeason = widget.seasons;
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateSeasonOption(widget.seasons);
+      });
+    }
+    super.initState();
+  }
 
   String selectedEventsString() {
     if (selectedSeason.length < 3) {

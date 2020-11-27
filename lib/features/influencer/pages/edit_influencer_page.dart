@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/features/influencer/widgets/body_size_section.dart';
 import 'package:grroom/features/influencer/widgets/country_section.dart';
 import 'package:grroom/features/influencer/widgets/followers_section.dart';
@@ -31,6 +32,10 @@ class _EditInfluencerPageState extends State<EditInfluencerPage> {
 
   @override
   void initState() {
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      Provider.of<AllProvider>(context,listen: false)
+          .updateInfluencerPageImage(widget.influncer.image);
+    });
     super.initState();
   }
 
@@ -54,13 +59,16 @@ class _EditInfluencerPageState extends State<EditInfluencerPage> {
         UndertoneSection(
           selectedTypes: influencer.undertone,
         ),
-        SpecialitySection(
-          speciality:influencer.speciality
-        ),
+        SpecialitySection(speciality: influencer.speciality),
         BodyShapeSection(
-          
+          selectedStyle: influencer.bodyShape[0]["gender"],
+          selectedSubStyleStyle: influencer.bodyShape[0]["shape"],
         ),
-        ISubmitButton()
+        ISubmitButton(
+          isEdit: true,
+          networkImage: influencer.image,
+          id: influencer.id,
+        )
       ];
 
   @override
@@ -80,52 +88,24 @@ class _EditInfluencerPageState extends State<EditInfluencerPage> {
     }
 
     Widget imageHeader() {
-      return AnimatedCrossFade(
-          firstChild: InkWell(
-            onTap: getImage,
-            child: _image != null
-                ? Container()
-                : Center(
-                    child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add_a_photo,
-                        color: Colors.grey,
-                        size: 14,
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        'Upload Image',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  )),
-          ),
-          secondChild: LimitedBox(
-            maxHeight: 100,
-            child: Stack(
-              fit: StackFit.expand,
-              alignment: Alignment.bottomCenter,
-              children: [
-                _image != null
-                    ? Image.file(
-                        File(_image?.path),
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        height: 50,
-                        width: 50,
-                      ),
-              ],
-            ),
-          ),
-          crossFadeState: _image == null
-              ? CrossFadeState.showFirst
-              : CrossFadeState.showSecond,
-          duration: const Duration(seconds: 1));
+      return LimitedBox(
+        maxHeight: 100,
+        child: Stack(
+          fit: StackFit.expand,
+          alignment: Alignment.bottomCenter,
+          children: [
+            _image != null
+                ? Image.file(
+                    File(_image?.path),
+                    fit: BoxFit.cover,
+                  )
+                : Image.network(
+                    widget.influncer.image,
+                    fit: BoxFit.cover,
+                  )
+          ],
+        ),
+      );
     }
 
     return SafeArea(
@@ -145,19 +125,17 @@ class _EditInfluencerPageState extends State<EditInfluencerPage> {
               expandedHeight: _sHeight * 0.5,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: true,
-                title: _image != null
-                    ? Container(
-                        height: 30,
-                        child: RaisedButton(
-                          color: Colors.white,
-                          child: Text(
-                            'Select another',
-                            style: TextStyle(fontSize: 10),
-                          ),
-                          onPressed: getImage,
-                        ),
-                      )
-                    : null,
+                title: Container(
+                  height: 30,
+                  child: RaisedButton(
+                    color: Colors.white,
+                    child: Text(
+                      'Select another',
+                      style: TextStyle(fontSize: 10),
+                    ),
+                    onPressed: getImage,
+                  ),
+                ),
                 background: imageHeader(),
                 stretchModes: [
                   StretchMode.zoomBackground,

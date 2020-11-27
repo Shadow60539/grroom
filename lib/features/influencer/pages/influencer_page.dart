@@ -39,11 +39,6 @@ class _InfluencerPageState extends State<InfluencerPage> {
   List<Widget> listItems = <Widget>[];
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final _sHeight = MediaQuery.of(context).size.height;
 

@@ -332,6 +332,15 @@ class _InfluencerDetailsPageState extends State<InfluencerDetailsPage> {
                                                     secondaryAnimation) {
                                               return Scaffold(
                                                 appBar: AppBar(
+                                                  automaticallyImplyLeading:
+                                                      false,
+                                                  leading: IconButton(
+                                                    icon: Icon(
+                                                        Icons.arrow_back_ios,
+                                                        size: 16),
+                                                    onPressed: () =>
+                                                        Navigator.pop(context),
+                                                  ),
                                                   backgroundColor:
                                                       Colors.black87,
                                                   title: Text(

@@ -1,5 +1,6 @@
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,12 @@ Map<String, List<String>> _styleOptions = {
 };
 
 class BodyShapeSection extends StatefulWidget {
+  final String selectedStyle;
+  final String selectedSubStyleStyle;
+
+  const BodyShapeSection(
+      {Key key, this.selectedStyle, this.selectedSubStyleStyle})
+      : super(key: key);
   @override
   _BodyShapeSectionState createState() => _BodyShapeSectionState();
 }
@@ -30,6 +37,21 @@ class _BodyShapeSectionState extends State<BodyShapeSection> {
   String selectedStyle;
   String selectedSubStyle = '';
   Map<String, dynamic> styleBody = {};
+
+  @override
+  void initState() {
+    if (widget.selectedStyle != null && widget.selectedSubStyleStyle != null) {
+      selectedStyle = widget.selectedStyle;
+      selectedSubStyle = widget.selectedSubStyleStyle;
+      styleBody["gender"] = selectedStyle;
+      styleBody["shape"] = selectedSubStyle;
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateBodyShape(styleBody);
+      });
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

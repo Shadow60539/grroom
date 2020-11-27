@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/features/influencer/pages/influencer_page.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:hive/hive.dart';
@@ -10,6 +11,9 @@ import 'drop_down_search/my_drop_down_search.dart';
 enum InfH { lastOne, lastSecond, none }
 
 class InfluencerCodeBuilder extends StatefulWidget {
+  final String code;
+
+  const InfluencerCodeBuilder({Key key, this.code}) : super(key: key);
   @override
   _InfluencerCodeBuilderState createState() => _InfluencerCodeBuilderState();
 }
@@ -17,6 +21,18 @@ class InfluencerCodeBuilder extends StatefulWidget {
 class _InfluencerCodeBuilderState extends State<InfluencerCodeBuilder> {
   InfH pastCode = InfH.none;
   TextEditingController controller = TextEditingController();
+
+  @override
+  void initState() {
+    if (widget.code != null) {
+      controller.text = widget.code;
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateInfluencerCode(widget.code);
+      });
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

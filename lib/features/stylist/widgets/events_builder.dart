@@ -1,5 +1,6 @@
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +24,9 @@ List<String> _mainEvents = [
 ];
 
 class EventsBuilder extends StatefulWidget {
+  final List<String> events;
+
+  const EventsBuilder({Key key, this.events}) : super(key: key);
   @override
   _EventsBuilderState createState() => _EventsBuilderState();
 }
@@ -42,6 +46,19 @@ class _EventsBuilderState extends State<EventsBuilder> {
           sE.toString().replaceAll('[', '').replaceAll(']', '');
       return '$selectedEvents, and ${selectedEvent.length - 2} more';
     }
+  }
+
+  @override
+  void initState() {
+    if (widget.events != null) {
+      selectedEvent = widget.events;
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateEventsOption(widget.events);
+      });
+    }
+
+    super.initState();
   }
 
   @override

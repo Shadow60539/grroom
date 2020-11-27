@@ -1,48 +1,41 @@
 import 'package:expansion_tile_card/expansion_tile_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
 List<String> _mainStyles = ["Formal", "Casual", "Sports"];
 Map<String, List<String>> _styleOptions = {
   "Formal": <String>[
-    "State dinner",
-    "Meetings",
-    "Conference",
-    "Convocation",
-    "Interview",
-    "Presentations",
-    "Co-operate dinners"
+    "Formal officewear",
+    "Business casual",
+    "Evening formal",
+    "Semi formal",
+    "Neutral"
   ],
   "Casual": <String>[
-    "Shopping",
-    "College",
-    "outings",
-    "Picnic",
-    "Travelling",
-    "Meet ups",
-    "Long drives",
-    "Going to cafes",
-    "Game night party",
-    "Karaoke party",
-    "Brunch",
-    "Re-unioun",
-    "Breakfasts",
-    "Theme parks",
-    "Safari",
-    "Rally march",
-    "Flash mob",
-    "Site visit",
-    "Going for movie",
-    "Informal meetups",
-    "get together",
-    "family gatherings",
-    "salon visits"
+    "Smart Casual",
+    "Streetwear",
+    "Boho chic",
+    "Girly",
+    "Retro",
+    "Evening casual",
+    "Resort",
+    "Neutral",
   ],
-  "Sports": <String>["After party", "Cocktail party", "Clubbing"]
+  "Sportwear": <String>[
+    "Athleisure",
+    "Yoga clothic",
+    "Swimwear",
+    "Gymwear",
+    "Neutral"
+  ]
 };
 
 class StyleBuilder extends StatefulWidget {
+  final Map<String, dynamic> styleBody;
+
+  const StyleBuilder({Key key, this.styleBody}) : super(key: key);
   @override
   _StyleBuilderState createState() => _StyleBuilderState();
 }
@@ -67,8 +60,20 @@ class _StyleBuilderState extends State<StyleBuilder> {
   }
 
   @override
+  void initState() {
+    if (widget.styleBody != null) {
+      selectedStyle = widget.styleBody["category"];
+      selectedSubStyle = widget.styleBody["value"];
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateStyles(widget.styleBody);
+      });
+    }
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    print(selectedStyle);
     return Card(
       shape: RoundedRectangleBorder(
           borderRadius: isExpanded

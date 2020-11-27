@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -7,6 +8,9 @@ import 'package:provider/provider.dart';
 enum LocationH { lastOne, lastSecond, none }
 
 class LocationBuilder extends StatefulWidget {
+  final String location;
+
+  const LocationBuilder({Key key, this.location}) : super(key: key);
   @override
   _LocationBuilderState createState() => _LocationBuilderState();
 }
@@ -14,6 +18,18 @@ class LocationBuilder extends StatefulWidget {
 class _LocationBuilderState extends State<LocationBuilder> {
   LocationH lastLocation = LocationH.none;
   TextEditingController controller = TextEditingController();
+
+  @override
+  void initState() {
+    if (widget.location != null) {
+      controller.text = widget.location;
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false)
+            .updateLocation(widget.location);
+      });
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

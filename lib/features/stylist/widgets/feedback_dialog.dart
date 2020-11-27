@@ -9,8 +9,9 @@ const kDuration400 = Duration(milliseconds: 400);
 
 class FeedbackDialog extends StatefulWidget {
   final bool isSuccess;
+  final String errorMessage;
 
-  FeedbackDialog({@required this.isSuccess});
+  FeedbackDialog({@required this.isSuccess, this.errorMessage});
 
   @override
   _FeedbackDialogState createState() => _FeedbackDialogState();
@@ -104,7 +105,7 @@ class _FeedbackDialogState extends State<FeedbackDialog>
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: Container(
-              margin: EdgeInsets.only(left: 30, right: 30, top: 60),
+              margin: EdgeInsets.only(left: 30, right: 30, top: 100),
               decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
                   borderRadius: BorderRadius.circular(5)),
@@ -129,7 +130,7 @@ class _FeedbackDialogState extends State<FeedbackDialog>
                         child: Text(
                           widget.isSuccess
                               ? 'Submitted successfully'
-                              : 'Oops something went wrong',
+                              : widget.errorMessage,
                           textAlign: TextAlign.center,
                         ),
                       ),
