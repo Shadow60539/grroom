@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:grroom/features/stylist/widgets/simple_dialog.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:provider/provider.dart';
 
@@ -18,7 +19,7 @@ class SubmitButton extends StatefulWidget {
 
   const SubmitButton({
     Key key,
-    this.isEdit,
+    this.isEdit = false,
     this.id,
     this.networkImage,
   }) : super(key: key);
@@ -42,8 +43,6 @@ class _SubmitButtonState extends State<SubmitButton> {
         _provider.stylistPageImage.isNotEmpty &&
         _provider.stylesOption.isNotEmpty &&
         _provider.eventsOption.isNotEmpty &&
-        _provider.location.isNotEmpty &&
-        _provider.location.isNotEmpty &&
         _provider.typeOption.isNotEmpty);
 
     return AnimatedContainer(
@@ -60,6 +59,7 @@ class _SubmitButtonState extends State<SubmitButton> {
             side: BorderSide(color: Colors.black87, width: 2),
             borderRadius: BorderRadius.circular(5)),
         onPressed: () {
+          print(_provider.influencerCode.isNotEmpty);
           if (isLoading) {
           } else if (isAllOptionsChosen) {
             submitData(context);
@@ -116,7 +116,7 @@ class _SubmitButtonState extends State<SubmitButton> {
     }
 
     Dio dio = Dio();
-    dio.options.baseUrl = 'https://groombackend.herokuapp.com/api';
+    dio.options.baseUrl = 'http://134.209.158.65/api/v1';
     dio.options.headers = {
       HttpHeaders.authorizationHeader: "Bearer $bearerToken",
       "Content-Type": "multipart/form-data"
@@ -124,12 +124,12 @@ class _SubmitButtonState extends State<SubmitButton> {
 
     final response = widget.isEdit
         ? await dio
-            .patch('/v1/meta/${widget.id}', data: formData)
+            .patch('/meta/${widget.id}', data: formData)
             .catchError((onError) {
             DioError dioError = onError;
             print(jsonDecode(dioError.response.toString())["message"]);
           })
-        : await dio.post('/v1/meta', data: formData).catchError((onError) {
+        : await dio.post('/meta', data: formData).catchError((onError) {
             DioError dioError = onError;
             print(jsonDecode(dioError.response.toString())["message"]);
           });
@@ -138,8 +138,8 @@ class _SubmitButtonState extends State<SubmitButton> {
       isLoading = false;
     });
 
-    if (response?.statusCode == 201 || response.data["status"] == 'success') {
-      showDialog(context: context, child: FeedbackDialog(isSuccess: true));
+    if (response?.statusCode == 201 || response?.statusCode == 200) {
+      showDialog(context: context, child: MySimpleDialog(isSuccess: true));
     } else {
       showDialog(context: context, child: FeedbackDialog(isSuccess: false));
     }

@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:grroom/features/auth/widgets/auth_success.dart';
 import 'package:http/http.dart' as http;
-import 'package:email_validator/email_validator.dart';
 
 import 'forgot_password_page.dart';
 import 'login_page.dart';
@@ -26,8 +26,7 @@ class _SignupPageState extends State<SignupPage> {
   bool _isLoading = false;
   String _errorMessage;
 
-  final String _signupEndpoint =
-      "https://groombackend.herokuapp.com/api/v1/user/signup";
+  final String _signupEndpoint = "http://134.209.158.65/api/v1/user/signup";
   Future<void> _handleSignup(BuildContext context) async {
     setState(() => _isLoading = true);
     if (_signupFormKey.currentState.validate()) {

@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:grroom/features/influencer/widgets/body_size_section.dart';
 import 'package:grroom/features/influencer/widgets/country_section.dart';
 import 'package:grroom/features/influencer/widgets/followers_section.dart';
+import 'package:grroom/features/influencer/widgets/gender_section.dart';
 import 'package:grroom/features/influencer/widgets/instagram_handle_section.dart';
 import 'package:grroom/features/influencer/widgets/name_section.dart';
 import 'package:grroom/features/influencer/widgets/speciality_section.dart';
@@ -33,17 +34,13 @@ class _EditInfluencerPageState extends State<EditInfluencerPage> {
   @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-      Provider.of<AllProvider>(context,listen: false)
+      Provider.of<AllProvider>(context, listen: false)
           .updateInfluencerPageImage(widget.influncer.image);
     });
     super.initState();
   }
 
   List<Widget> listOfWidgets(Influencer influencer) => [
-        NameSection(
-          firstName: influencer.firstName,
-          lastName: influencer.lastName,
-        ),
         InstagramHandleSection(
           igHandle: influencer.igUsername,
         ),
@@ -56,14 +53,17 @@ class _EditInfluencerPageState extends State<EditInfluencerPage> {
         BodySizeSection(
           selectedTypes: influencer.bodySize,
         ),
+        GenderSection(
+          selectedTypes: influencer.gender,
+        ),
+        BodyShapeSection(
+          bodyShape: influencer.bodyShape,
+          gender: influencer.gender,
+        ),
         UndertoneSection(
           selectedTypes: influencer.undertone,
         ),
         SpecialitySection(speciality: influencer.speciality),
-        BodyShapeSection(
-          selectedStyle: influencer.bodyShape[0]["gender"],
-          selectedSubStyleStyle: influencer.bodyShape[0]["shape"],
-        ),
         ISubmitButton(
           isEdit: true,
           networkImage: influencer.image,
@@ -108,47 +108,72 @@ class _EditInfluencerPageState extends State<EditInfluencerPage> {
       );
     }
 
-    return SafeArea(
-      child: GestureDetector(
-        onTap: () {
-          // Provider.of<AllProvider>(context, listen: false).hideInfluencerCode();
-        },
-        child: Scaffold(
-            body: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              elevation: 1,
-              backgroundColor: Colors.white,
-              automaticallyImplyLeading: false,
-              stretch: true,
-              expandedHeight: _sHeight * 0.5,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                title: Container(
-                  height: 30,
-                  child: RaisedButton(
-                    color: Colors.white,
-                    child: Text(
-                      'Select another',
-                      style: TextStyle(fontSize: 10),
-                    ),
-                    onPressed: getImage,
-                  ),
+    return WillPopScope(
+      onWillPop: () async {
+        Provider.of<AllProvider>(context, listen: false).clearAll();
+
+        Navigator.pop(context);
+
+        return false;
+      },
+      child: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            // Provider.of<AllProvider>(context, listen: false).hideInfluencerCode();
+          },
+          child: Scaffold(
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back_ios, size: 16),
+                  onPressed: () {
+                    Provider.of<AllProvider>(context, listen: false).clearAll();
+
+                    Navigator.pop(context);
+                  },
                 ),
-                background: imageHeader(),
-                stretchModes: [
-                  StretchMode.zoomBackground,
-                  StretchMode.blurBackground
-                ],
+                backgroundColor: Colors.black87,
+                title: Text(
+                  'Edit Influencer',
+                  style: TextStyle(fontSize: 14),
+                ),
               ),
-            ),
-            SliverList(
-              delegate:
-                  SliverChildListDelegate(listOfWidgets(widget.influncer)),
-            )
-          ],
-        )),
+              body: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    elevation: 1,
+                    backgroundColor: Colors.white,
+                    automaticallyImplyLeading: false,
+                    stretch: true,
+                    expandedHeight: _sHeight * 0.5,
+                    flexibleSpace: FlexibleSpaceBar(
+                      centerTitle: true,
+                      title: Container(
+                        height: 30,
+                        child: RaisedButton(
+                          color: Colors.white,
+                          child: Text(
+                            'Select another',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          onPressed: getImage,
+                        ),
+                      ),
+                      background: imageHeader(),
+                      stretchModes: [
+                        StretchMode.zoomBackground,
+                        StretchMode.blurBackground
+                      ],
+                    ),
+                  ),
+                  SliverList(
+                    delegate: SliverChildListDelegate(
+                        listOfWidgets(widget.influncer)),
+                  )
+                ],
+              )),
+        ),
       ),
     );
   }

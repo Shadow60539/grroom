@@ -23,7 +23,7 @@ class Stylist {
   });
 
   final Style style;
-  final Location location;
+  final String location;
   final List<String> events;
   final List<String> season;
   final DateTime createdAt;
@@ -37,7 +37,7 @@ class Stylist {
   factory Stylist.fromJson(Map<String, dynamic> json) {
     return Stylist(
         style: Style.fromJson(json["style"]),
-        location: Location.fromJson(json["location"]),
+        location: json["location"].toString(),
         events: List<String>.from(json["events"].map((x) => x)),
         season: List<String>.from(json["season"].map((x) => x)),
         createdAt: DateTime.parse(json["createdAt"]),
@@ -50,7 +50,7 @@ class Stylist {
   factory Stylist.empty() {
     return Stylist(
         style: Style.empty(),
-        location: Location.empty(),
+        location: '',
         events: [],
         season: [],
         createdAt: DateTime.now(),
@@ -63,7 +63,7 @@ class Stylist {
 
   Map<String, dynamic> toJson() => {
         "style": style.toJson(),
-        "location": location.toJson(),
+        "location": location,
         "events": List<dynamic>.from(events.map((x) => x)),
         "season": List<dynamic>.from(season.map((x) => x)),
         "createdAt": createdAt.toIso8601String(),

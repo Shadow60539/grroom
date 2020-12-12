@@ -1,5 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:grroom/core/globals.dart';
+import 'package:grroom/features/influencer/pages/full_screen_image_page.dart';
 import 'package:grroom/features/stylist/pages/edit_stylist_page.dart';
 import 'package:grroom/models/stylist.dart';
 
@@ -14,15 +17,18 @@ class StylistDetailsPage extends StatefulWidget {
 class _StylistDetailsPageState extends State<StylistDetailsPage> {
   @override
   Widget build(BuildContext context) {
+    final Stylist stylist = widget.stylist;
     Widget tablechild({String title, subtitle, String gender}) {
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
             children: [
               gender == null
                   ? Container()
                   : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.network(
@@ -92,7 +98,7 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                 physics: const BouncingScrollPhysics(),
                 children: [
                   Text(
-                    '5fbc9f0bb650340b207a2183',
+                    stylist.influencerId,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 20,
@@ -102,29 +108,33 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                   SizedBox(
                     height: 30,
                   ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FaIcon(
-                        FontAwesomeIcons.locationArrow,
-                        color: Colors.black26,
-                        size: 16,
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      Text(
-                        'India',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.black54),
-                      ),
-                    ],
-                  ),
+                  stylist.place == ''
+                      ? Text('')
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            FaIcon(
+                              FontAwesomeIcons.locationArrow,
+                              color: stylist.place == null
+                                  ? Colors.white
+                                  : Colors.black26,
+                              size: 16,
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              stylist.place,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black54),
+                            ),
+                          ],
+                        ),
                   SizedBox(
                     height: 30,
                   ),
@@ -133,6 +143,7 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                     overflow: Overflow.visible,
                     children: [
                       Container(
+                        alignment: Alignment.center,
                         margin: const EdgeInsets.symmetric(horizontal: 10),
                         padding: const EdgeInsets.symmetric(
                                 vertical: 20, horizontal: 20)
@@ -151,13 +162,18 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                           runSpacing: 20,
                           children: [
                             tablechild(
-                                title: 'Cocktail Party, Costume, Trekking',
+                                title: stylist.events
+                                    .join(",\n\n\u2022 ")
+                                    .replaceFirst('', '\u2022 '),
                                 subtitle: 'Events'),
                             Divider(
                               indent: 50,
                               endIndent: 50,
                             ),
-                            tablechild(title: 'Formal', subtitle: 'Style'),
+                            tablechild(
+                                title:
+                                    '${stylist.style.category} : ${stylist.style.value.join(",")}',
+                                subtitle: 'Style'),
                           ],
                         ),
                       ),
@@ -198,12 +214,13 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                           runSpacing: 20,
                           children: [
                             tablechild(
-                                title: 'Summer, Winter', subtitle: 'Season'),
+                                title: stylist.season.join(","),
+                                subtitle: 'Season'),
                             Divider(
                               indent: 50,
                               endIndent: 50,
                             ),
-                            tablechild(title: 'Good', subtitle: 'Type'),
+                            tablechild(title: stylist.type, subtitle: 'Type'),
                           ],
                         ),
                       ),
@@ -232,15 +249,54 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                     children: [
                       Card(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(1000)),
-                      ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(1000),
-                        child: Image.network(
-                          'https://cdn.dribbble.com/users/1958940/screenshots/14068382/media/0fd6ec812bbcc346f6a140d3b45e2877.png',
-                          height: 190,
-                          width: 190,
-                          fit: BoxFit.cover,
+                          borderRadius: BorderRadius.circular(1000),
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (BuildContext context,
+                                      Animation<double> animation,
+                                      Animation<double> secondaryAnimation) {
+                                    return FullScreenImagePreview(
+                                      img: stylist.image,
+                                      animation: animation,
+                                    );
+                                  },
+                                  transitionDuration:
+                                      const Duration(milliseconds: 200),
+                                  transitionsBuilder: (BuildContext context,
+                                      Animation<double> animation,
+                                      Animation<double> secondaryAnimation,
+                                      Widget child) {
+                                    return SlideTransition(
+                                      position: new Tween<Offset>(
+                                        begin: const Offset(-1.0, 0.0),
+                                        end: Offset.zero,
+                                      ).animate(CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeIn)),
+                                      child: child,
+                                    );
+                                  },
+                                ));
+                          },
+                          child: Hero(
+                            tag: stylist.image,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(1000),
+                              child: CachedNetworkImage(
+                                imageUrl: stylist.image,
+                                height: 190,
+                                width: 190,
+                                fit: BoxFit.contain,
+                                errorWidget: (context, url, error) {
+                                  return Image.asset('assets/no_image.jpg');
+                                },
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -280,21 +336,8 @@ class _StylistDetailsPageState extends State<StylistDetailsPage> {
                                 pageBuilder: (BuildContext context,
                                     Animation<double> animation,
                                     Animation<double> secondaryAnimation) {
-                                  return Scaffold(
-                                    appBar: AppBar(
-                                      automaticallyImplyLeading: false,
-                                      leading: IconButton(
-                                        icon: Icon(Icons.arrow_back_ios,
-                                            size: 16),
-                                        onPressed: () => Navigator.pop(context),
-                                      ),
-                                      backgroundColor: Colors.black87,
-                                      title: Text(
-                                        'Edit Stylist',
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ),
-                                    body: EditStylistPage(),
+                                  return EditStylistPage(
+                                    stylist: stylist,
                                   );
                                 },
                                 transitionsBuilder: (BuildContext context,

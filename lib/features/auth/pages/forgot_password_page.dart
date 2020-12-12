@@ -18,7 +18,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   final client = http.Client();
   final String _forgotPasswordEndpoint =
-      "https://groombackend.herokuapp.com/api/v1/user/forgotPassword";
+      "http://134.209.158.65/api/v1/user/forgotPassword";
   bool _isLoading = false;
   String _errorMessage;
 

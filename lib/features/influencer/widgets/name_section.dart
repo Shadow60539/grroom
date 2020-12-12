@@ -72,6 +72,7 @@ class _NameSectionState extends State<NameSection> {
             Expanded(
               child: SizedBox(
                 child: TextField(
+                  
                   controller: lastNameController,
                   onChanged: (value) {
                     if (value.isNotEmpty) {

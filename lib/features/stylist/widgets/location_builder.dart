@@ -28,6 +28,11 @@ class _LocationBuilderState extends State<LocationBuilder> {
             .updateLocation(widget.location);
       });
     }
+
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      controller.text =
+          Provider.of<AllProvider>(context, listen: false).location;
+    });
     super.initState();
   }
 
@@ -51,7 +56,7 @@ class _LocationBuilderState extends State<LocationBuilder> {
                     child: TextField(
                       autofocus: false,
                       controller: controller,
-                      onSubmitted: (value) {
+                      onChanged: (value) {
                         if (value.isNotEmpty) {
                           box.add(value);
                           Provider.of<AllProvider>(context, listen: false)
@@ -71,7 +76,7 @@ class _LocationBuilderState extends State<LocationBuilder> {
                               borderSide:
                                   BorderSide(color: Colors.black12, width: 1))),
                     )),
-                if (box.length < 3)
+                if (box.length < 2)
                   Container()
                 else
                   Column(
@@ -101,7 +106,7 @@ class _LocationBuilderState extends State<LocationBuilder> {
                                   }
                                 });
                               },
-                              child: AnimatedContainer(
+                              child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 5),
                                 decoration: BoxDecoration(
@@ -111,7 +116,6 @@ class _LocationBuilderState extends State<LocationBuilder> {
                                     borderRadius: BorderRadius.circular(2),
                                     border: Border.all(
                                         color: Colors.black12, width: 1)),
-                                duration: const Duration(milliseconds: 100),
                                 child: Text(
                                   box.getAt(box.length - 1),
                                   style: TextStyle(
@@ -141,7 +145,7 @@ class _LocationBuilderState extends State<LocationBuilder> {
                                   }
                                 });
                               },
-                              child: AnimatedContainer(
+                              child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 5),
                                 decoration: BoxDecoration(
@@ -151,7 +155,6 @@ class _LocationBuilderState extends State<LocationBuilder> {
                                     borderRadius: BorderRadius.circular(2),
                                     border: Border.all(
                                         color: Colors.black12, width: 1)),
-                                duration: const Duration(milliseconds: 100),
                                 child: Text(
                                   box.getAt(box.length - 2),
                                   style: TextStyle(

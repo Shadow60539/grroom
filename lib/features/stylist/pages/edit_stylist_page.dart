@@ -96,46 +96,73 @@ class _EditStylistPageState extends State<EditStylistPage> {
             );
     }
 
-    return SafeArea(
-      child: GestureDetector(
-        onTap: () {
-          Provider.of<AllProvider>(context, listen: false).hideInfluencerCode();
-        },
-        child: Scaffold(
-            body: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              elevation: 1,
-              backgroundColor: Colors.white,
-              automaticallyImplyLeading: false,
-              stretch: true,
-              expandedHeight: _sHeight * 0.5,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                title: Container(
-                  height: 30,
-                  child: RaisedButton(
-                    color: Colors.white,
-                    child: Text(
-                      'Select another',
-                      style: TextStyle(fontSize: 10),
-                    ),
-                    onPressed: getImage,
-                  ),
+    return WillPopScope(
+      onWillPop: () async {
+        Provider.of<AllProvider>(context, listen: false).clearAll();
+
+        Navigator.pop(context);
+
+        return false;
+      },
+      child: SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            Provider.of<AllProvider>(context, listen: false)
+                .hideInfluencerCode();
+          },
+          child: Scaffold(
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back_ios, size: 16),
+                  onPressed: () {
+                    Provider.of<AllProvider>(context, listen: false).clearAll();
+
+                    Navigator.pop(context);
+                  },
                 ),
-                background: imageHeader(),
-                stretchModes: [
-                  StretchMode.zoomBackground,
-                  StretchMode.blurBackground
-                ],
+                backgroundColor: Colors.black87,
+                title: Text(
+                  'Edit Stylist',
+                  style: TextStyle(fontSize: 14),
+                ),
               ),
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate(listOfWidgets(widget.stylist)),
-            )
-          ],
-        )),
+              body: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    elevation: 1,
+                    backgroundColor: Colors.white,
+                    automaticallyImplyLeading: false,
+                    stretch: true,
+                    expandedHeight: _sHeight * 0.5,
+                    flexibleSpace: FlexibleSpaceBar(
+                      centerTitle: true,
+                      title: Container(
+                        height: 30,
+                        child: RaisedButton(
+                          color: Colors.white,
+                          child: Text(
+                            'Select another',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          onPressed: getImage,
+                        ),
+                      ),
+                      background: imageHeader(),
+                      stretchModes: [
+                        StretchMode.zoomBackground,
+                        StretchMode.blurBackground
+                      ],
+                    ),
+                  ),
+                  SliverList(
+                    delegate:
+                        SliverChildListDelegate(listOfWidgets(widget.stylist)),
+                  )
+                ],
+              )),
+        ),
       ),
     );
   }

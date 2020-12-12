@@ -37,6 +37,13 @@ class _SpecialitySectionState extends State<SpecialitySection> {
             SizedBox(
               width: 20,
             ),
+            Text(
+              '(Optional)',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            SizedBox(
+              width: 5,
+            ),
             Text('Speciality'),
             SizedBox(
               width: 20,

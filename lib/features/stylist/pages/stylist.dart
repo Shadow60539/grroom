@@ -21,7 +21,7 @@ class _StylistScreenState extends State<StylistScreen> {
   void initState() {
     super.initState();
     // storage.read(key: "token").then((value) => setState(() => token = value));
-    http.get("https://groombackend.herokuapp.com/api/v1/meta", headers: {
+    http.get("http://134.209.158.65/api/v1/meta", headers: {
       HttpHeaders.authorizationHeader: "Bearer $token"
     }).then((value) => print(value.body));
     setState(() {

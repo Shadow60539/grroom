@@ -5,6 +5,7 @@ import 'package:grroom/utils/all_provider.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'features/auth/pages/change_password_page.dart';
 import 'features/auth/pages/forgot_password_page.dart';
@@ -82,50 +83,55 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: Container(
-          child: Center(
-              child: screenLoaded
-                  ? redirect
-                      ? LoginPage()
-                      : FutureBuilder(
-                          future: Future.wait([
-                            Hive.openBox('influencerBox'),
-                            Hive.openBox('locationBox'),
-                          ]),
-                          builder:
-                              (BuildContext context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              return IndexPage();
-                            } else {
-                              return SpinKitPouringHourglass(
-                                color: Colors.black87,
-                                size: 20,
-                              );
-                            }
-                          },
-                        )
-                  : SpinKitPouringHourglass(
-                      color: Colors.black87,
-                      size: 20,
-                    )
-              // child: FutureBuilder(
-              //   future: Future.wait([
-              //     Hive.openBox('influencerBox'),
-              //     Hive.openBox('locationBox'),
-              //   ]),
-              //   builder: (BuildContext context, AsyncSnapshot snapshot) {
-              //     if (snapshot.hasData) {
-              //       return StylistPage();
-              //     } else {
-              //       return CircularProgressIndicator(
-              //         valueColor: AlwaysStoppedAnimation(Colors.black87),
-              //       );
-              //     }
-              //   },
-              // ),
-              ),
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: SafeArea(
+        child: Scaffold(
+          body: Container(
+            child: Center(
+                child: screenLoaded
+                    ? redirect
+                        ? LoginPage()
+                        : FutureBuilder(
+                            future: Future.wait([
+                              Hive.openBox('influencerBox'),
+                              Hive.openBox('locationBox'),
+                            ]),
+                            builder:
+                                (BuildContext context, AsyncSnapshot snapshot) {
+                              if (snapshot.hasData) {
+                                return IndexPage();
+                              } else {
+                                return SpinKitPouringHourglass(
+                                  color: Colors.black87,
+                                  size: 20,
+                                );
+                              }
+                            },
+                          )
+                    : SpinKitPouringHourglass(
+                        color: Colors.black87,
+                        size: 20,
+                      )
+                // child: FutureBuilder(
+                //   future: Future.wait([
+                //     Hive.openBox('influencerBox'),
+                //     Hive.openBox('locationBox'),
+                //   ]),
+                //   builder: (BuildContext context, AsyncSnapshot snapshot) {
+                //     if (snapshot.hasData) {
+                //       return StylistPage();
+                //     } else {
+                //       return CircularProgressIndicator(
+                //         valueColor: AlwaysStoppedAnimation(Colors.black87),
+                //       );
+                //     }
+                //   },
+                // ),
+                ),
+          ),
         ),
       ),
     );

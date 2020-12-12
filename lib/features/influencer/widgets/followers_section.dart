@@ -23,48 +23,58 @@ class _FollowersSectionState extends State<FollowersSection> {
             .updateFollowerCount(int.parse(widget.noOfFollowers));
       });
     }
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      controller.text = Provider.of<AllProvider>(context, listen: false)
+          .followerCount
+          .toString();
+    });
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final _sWidth = MediaQuery.of(context).size.width;
-    return Card(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20,
+    return Consumer<AllProvider>(
+      builder: (context, provider, child) {
+        return Card(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                ),
+                Text('No of followers'),
+                Spacer(),
+                SizedBox(
+                  child: TextField(
+                    controller: controller,
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        Provider.of<AllProvider>(context, listen: false)
+                            .updateFollowerCount(int.parse(value));
+                      }
+                    },
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(10),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(2),
+                            borderSide:
+                                BorderSide(color: Colors.black12, width: 1))),
+                  ),
+                  height: 40,
+                  width: 100,
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+              ],
             ),
-            Text('No of followers'),
-            Spacer(),
-            SizedBox(
-              child: TextField(
-                controller: controller,
-                onChanged: (value) {
-                  if (value.isNotEmpty) {
-                    Provider.of<AllProvider>(context, listen: false)
-                        .updateFollowerCount(int.parse(value));
-                  }
-                },
-                keyboardType: TextInputType.numberWithOptions(),
-                decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.all(10),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(2),
-                        borderSide:
-                            BorderSide(color: Colors.black12, width: 1))),
-              ),
-              height: 40,
-              width: 100,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

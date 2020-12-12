@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -33,10 +35,20 @@ class StylistPage extends StatefulWidget {
 class _StylistPageState extends State<StylistPage> {
   PickedFile _image;
   List<Widget> listItems = <Widget>[];
+  int _imageHeight;
+  ScrollController _controller;
 
   @override
   void initState() {
+    _controller = ScrollController()..addListener(() {});
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -47,13 +59,20 @@ class _StylistPageState extends State<StylistPage> {
     Future getImage() async {
       final _pickedImage =
           await ImagePicker().getImage(source: ImageSource.gallery);
-      setState(() {
+      setState(() async {
         if (_pickedImage != null) {
           _image = _pickedImage;
+          final image = File(_image?.path);
+          var decodedImage = await decodeImageFromList(image.readAsBytesSync());
+
+          setState(() {
+            _imageHeight = decodedImage.height;
+          });
+
+          Provider.of<AllProvider>(context, listen: false)
+              .updateStylistPageImage(_image.path);
         }
       });
-      Provider.of<AllProvider>(context, listen: false)
-          .updateStylistPageImage(_image.path);
     }
 
     Widget imageHeader() {
@@ -81,63 +100,20 @@ class _StylistPageState extends State<StylistPage> {
                     ],
                   )),
           ),
-          secondChild: LimitedBox(
-            maxHeight: 100,
-            child: Stack(
-              fit: StackFit.expand,
-              alignment: Alignment.bottomCenter,
-              children: [
-                _image != null
-                    ? Image.file(
-                        File(_image?.path),
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        height: 50,
-                        width: 50,
-                      ),
-                AnimatedList(
-                  shrinkWrap: true,
-                  key: backgroundKey,
-                  initialItemCount: stringList.length,
-                  itemBuilder: (context, index, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: animation.drive(
-                            Tween(begin: Offset(-2, 0), end: Offset.zero)),
-                        child: Container(
-                          width: 10,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: Colors.black12),
-                          margin: const EdgeInsets.all(20),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.add,
-                                size: 10,
-                                color: Colors.black,
-                              ),
-                              SizedBox(
-                                width: 2,
-                              ),
-                              Text(
-                                stringList[index],
-                                style: TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 12,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+          secondChild: Stack(
+            fit: StackFit.expand,
+            alignment: Alignment.bottomCenter,
+            children: [
+              _image != null
+                  ? Image.file(
+                      File(_image?.path),
+                      fit: BoxFit.contain,
+                    )
+                  : Container(
+                      height: 50,
+                      width: 50,
+                    ),
+            ],
           ),
           crossFadeState: _image == null
               ? CrossFadeState.showFirst
@@ -145,48 +121,70 @@ class _StylistPageState extends State<StylistPage> {
           duration: const Duration(seconds: 1));
     }
 
-    return SafeArea(
-      child: GestureDetector(
-        onTap: () {
-          // Provider.of<AllProvider>(context, listen: false).hideInfluencerCode();
-        },
+    return WillPopScope(
+      onWillPop: () async {
+        Provider.of<AllProvider>(context, listen: false).clearAll();
+
+        Navigator.pop(context);
+        return false;
+      },
+      child: SafeArea(
         child: Scaffold(
-            body: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              elevation: 1,
-              backgroundColor: Colors.white,
+            appBar: AppBar(
               automaticallyImplyLeading: false,
-              stretch: true,
-              expandedHeight: _sHeight * 0.5,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                title: _image != null
-                    ? Container(
-                        height: 30,
-                        child: RaisedButton(
-                          color: Colors.white,
-                          child: Text(
-                            'Select another',
-                            style: TextStyle(fontSize: 10),
-                          ),
-                          onPressed: getImage,
-                        ),
-                      )
-                    : null,
-                background: imageHeader(),
-                stretchModes: [
-                  StretchMode.zoomBackground,
-                  StretchMode.blurBackground
-                ],
+              leading: IconButton(
+                icon: Transform.rotate(
+                    angle: -pi / 2,
+                    child: Icon(Icons.arrow_back_ios, size: 16)),
+                onPressed: () {
+                  Provider.of<AllProvider>(context, listen: false).clearAll();
+
+                  Navigator.pop(context);
+                },
+              ),
+              backgroundColor: Colors.black87,
+              title: Text(
+                'Add Stylist',
+                style: TextStyle(fontSize: 14),
               ),
             ),
-            SliverList(
-              delegate: SliverChildListDelegate(listOfWidgets),
-            )
-          ],
-        )),
+            body: CustomScrollView(
+              controller: _controller,
+              // physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverAppBar(
+                  elevation: 1,
+                  backgroundColor: Colors.white,
+                  automaticallyImplyLeading: false,
+                  stretch: true,
+                  expandedHeight: _imageHeight?.toDouble() ?? _sHeight * 0.5,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: true,
+                    title: _image != null
+                        ? Container(
+                            height: 30,
+                            child: RaisedButton(
+                              color: Colors.white,
+                              child: Text(
+                                'Select another',
+                                style: TextStyle(fontSize: 10),
+                              ),
+                              onPressed: getImage,
+                            ),
+                          )
+                        : null,
+                    background: imageHeader(),
+                    stretchModes: [
+                      StretchMode.zoomBackground,
+                      StretchMode.blurBackground
+                    ],
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildListDelegate(listOfWidgets),
+                )
+              ],
+            )),
       ),
     );
   }

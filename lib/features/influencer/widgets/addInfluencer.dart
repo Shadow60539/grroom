@@ -12,14 +12,14 @@ class AddInfluencerScreen extends StatefulWidget {
 }
 
 class _AddInfluencerScreenState extends State<AddInfluencerScreen> {
-
   // library helpers
   final Dio dio = new Dio();
   final picker = ImagePicker();
-  String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmYjBmODc3M2NiOTgzMDAxNzA0MDM5OCIsImlhdCI6MTYwNTg1MTQ3MiwiZXhwIjoxNjEzNjI3NDcyfQ.vDCEocYHHUxtYlwy7mF0Las5gASDkTE0xU02yp2xbH0";
+  String token =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmYjBmODc3M2NiOTgzMDAxNzA0MDM5OCIsImlhdCI6MTYwNTg1MTQ3MiwiZXhwIjoxNjEzNjI3NDcyfQ.vDCEocYHHUxtYlwy7mF0Las5gASDkTE0xU02yp2xbH0";
 
   final _formKey = GlobalKey<FormState>();
-  
+
   // form inputs
   PickedFile _image;
 
@@ -38,11 +38,20 @@ class _AddInfluencerScreenState extends State<AddInfluencerScreen> {
   // options
   List<String> _bodyToneOptions = <String>["fair", "neutral", "dark"];
   List<String> _bodyShapeOptions = <String>["fat", "slim", "fit"];
-  List<String> _bodySizeOptions = <String>["small", "medium", "large", "extra large"];
-  List<String> _specialityOptions = <String>["special", "not special", "very special"]; 
+  List<String> _bodySizeOptions = <String>[
+    "small",
+    "medium",
+    "large",
+    "extra large"
+  ];
+  List<String> _specialityOptions = <String>[
+    "special",
+    "not special",
+    "very special"
+  ];
 
   @override
-  void initState() { 
+  void initState() {
     super.initState();
     // final storage = FlutterSecureStorage();
     // storage.read(key: "token").then((val) => setState(() => token = val));
@@ -57,195 +66,218 @@ class _AddInfluencerScreenState extends State<AddInfluencerScreen> {
     _selectedBodyTone = "fair";
     _selectedSpeciality = "special";
   }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Form(
-        key: _formKey,
-        child: ListView(
-          children: [
-            // image 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: _image == null ? SizedBox(height: 0) : Image.file(File(_image.path)),
-            ),
+          key: _formKey,
+          child: ListView(
+            children: [
+              // image
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _image == null
+                    ? SizedBox(height: 0)
+                    : Image.file(File(_image.path)),
+              ),
 
-            // image picker
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: RaisedButton.icon(
-                onPressed: pickImage,
-                icon: Icon(_image == null ? Icons.add : Icons.refresh), 
-                label: Text(_image == null ? "Select Image" : "Update Image")
+              // image picker
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: RaisedButton.icon(
+                    onPressed: pickImage,
+                    icon: Icon(_image == null ? Icons.add : Icons.refresh),
+                    label:
+                        Text(_image == null ? "Select Image" : "Update Image")),
               ),
-            ),
 
-            // firstName
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                controller: _firstNameController,
-                decoration: InputDecoration(
-                  labelText: "First Name",
-                  border: OutlineInputBorder(),
+              // firstName
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: _firstNameController,
+                  decoration: InputDecoration(
+                    labelText: "First Name",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) =>
+                      val.isEmpty ? "Please fill this field" : null,
                 ),
-                validator: (val) => val.isEmpty ? "Please fill this field" : null,
               ),
-            ),
-            
-            // secondName
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                controller: _lastNameController,
-                decoration: InputDecoration(
-                  labelText: "Last Name",
-                  border: OutlineInputBorder(),
-                ),
-                // validator: (val) => val.isEmpty ? "Please fill this field" : null,
-              ),
-            ),
-            
-            // igUserName
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                controller: _igUserNameController,
-                decoration: InputDecoration(
-                  labelText: "Instagram Username",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (val) => val.isEmpty ? "Please fill this field" : null,
-              ),
-            ),
 
-            // igProfileLink
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                controller: _igProfileLinkController,
-                decoration: InputDecoration(
-                  labelText: "Instagram Profile Link",
-                  border: OutlineInputBorder(),
+              // secondName
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: _lastNameController,
+                  decoration: InputDecoration(
+                    labelText: "Last Name",
+                    border: OutlineInputBorder(),
+                  ),
+                  // validator: (val) => val.isEmpty ? "Please fill this field" : null,
                 ),
-                validator: (val) => val.isEmpty ? "Please fill this field" : null,
               ),
-            ),
 
-            // body tone
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButtonFormField(
-                decoration: InputDecoration(
-                  hintText: "Select Body Tone",
-                  border: OutlineInputBorder(),
+              // igUserName
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: _igUserNameController,
+                  decoration: InputDecoration(
+                    labelText: "Instagram Username",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) =>
+                      val.isEmpty ? "Please fill this field" : null,
                 ),
-                value: _selectedBodyTone,
-                items: _bodyToneOptions.map((_tone) => DropdownMenuItem(value: _tone, child: Text(_tone))).toList(),
-                validator: (val) => val == null || val.isEmpty ? "Please select a option" : null,
-                onChanged: (val) => setState(() => _selectedBodyTone = val),
               ),
-            ),
 
-            // body shape
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButtonFormField(
-                decoration: InputDecoration(
-                  hintText: "Select Body Shape",
-                  border: OutlineInputBorder(),
+              // igProfileLink
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: _igProfileLinkController,
+                  decoration: InputDecoration(
+                    labelText: "Instagram Profile Link",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) =>
+                      val.isEmpty ? "Please fill this field" : null,
                 ),
-                value: _selectedBodyShape,
-                items: _bodyShapeOptions.map((_shape) => DropdownMenuItem(value: _shape, child: Text(_shape))).toList(),
-                validator: (val) => val.isEmpty ? "Please select a option" : null,
-                onChanged: (val) => setState(() => _selectedBodyShape = val),
               ),
-            ),
 
-            // bodySize
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButtonFormField(
-                decoration: InputDecoration(
-                  hintText: "Select Body Size",
-                  border: OutlineInputBorder(),
+              // body tone
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButtonFormField(
+                  decoration: InputDecoration(
+                    hintText: "Select Body Tone",
+                    border: OutlineInputBorder(),
+                  ),
+                  value: _selectedBodyTone,
+                  items: _bodyToneOptions
+                      .map((_tone) =>
+                          DropdownMenuItem(value: _tone, child: Text(_tone)))
+                      .toList(),
+                  validator: (val) => val == null || val.isEmpty
+                      ? "Please select a option"
+                      : null,
+                  onChanged: (val) => setState(() => _selectedBodyTone = val),
                 ),
-                value: _selectedBodySize,
-                items: _bodySizeOptions.map((_size) => DropdownMenuItem(value: _size, child: Text(_size))).toList(),
-                validator: (val) => val.isEmpty ? "Please select a option" : null,
-                onChanged: (val) => setState(() => _selectedBodySize = val),
               ),
-            ),
 
-            // noOfFollower
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                controller: _noOfFollowerController,
-                decoration: InputDecoration(
-                  labelText: "No of followers",
-                  border: OutlineInputBorder(),
+              // body shape
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButtonFormField(
+                  decoration: InputDecoration(
+                    hintText: "Select Body Shape",
+                    border: OutlineInputBorder(),
+                  ),
+                  value: _selectedBodyShape,
+                  items: _bodyShapeOptions
+                      .map((_shape) =>
+                          DropdownMenuItem(value: _shape, child: Text(_shape)))
+                      .toList(),
+                  validator: (val) =>
+                      val.isEmpty ? "Please select a option" : null,
+                  onChanged: (val) => setState(() => _selectedBodyShape = val),
                 ),
-                keyboardType: TextInputType.number,
-                validator: (val) => val.isEmpty ? "Please fill this field" : null,
               ),
-            ),
 
-            // country
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                controller: _countryController,
-                decoration: InputDecoration(
-                  labelText: "Enter Country",
-                  border: OutlineInputBorder(),
+              // bodySize
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButtonFormField(
+                  decoration: InputDecoration(
+                    hintText: "Select Body Size",
+                    border: OutlineInputBorder(),
+                  ),
+                  value: _selectedBodySize,
+                  items: _bodySizeOptions
+                      .map((_size) =>
+                          DropdownMenuItem(value: _size, child: Text(_size)))
+                      .toList(),
+                  validator: (val) =>
+                      val.isEmpty ? "Please select a option" : null,
+                  onChanged: (val) => setState(() => _selectedBodySize = val),
                 ),
-                validator: (val) => val.isEmpty ? "Please fill this field" : null,
               ),
-            ),
 
-            // speciality
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButtonFormField(
-                decoration: InputDecoration(
-                  hintText: "Select Speciality",
-                  border: OutlineInputBorder(),
+              // noOfFollower
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: _noOfFollowerController,
+                  decoration: InputDecoration(
+                    labelText: "No of followers",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (val) =>
+                      val.isEmpty ? "Please fill this field" : null,
                 ),
-                value: _selectedSpeciality,
-                items: _specialityOptions.map((_speciality) => DropdownMenuItem(value: _speciality, child: Text(_speciality))).toList(),
-                validator: (val) => val.isEmpty ? "Please select a option" : null,
-                onChanged: (val) => setState(() => _selectedSpeciality = val),
               ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: RaisedButton.icon(
-                onPressed: handleSubmitInfluencer,
-                icon: Icon(Icons.add), 
-                label: Text("Add Influencer")
+              // country
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: _countryController,
+                  decoration: InputDecoration(
+                    labelText: "Enter Country",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) =>
+                      val.isEmpty ? "Please fill this field" : null,
+                ),
               ),
-            )
-          ],
-        )
-      ),
+
+              // speciality
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButtonFormField(
+                  decoration: InputDecoration(
+                    hintText: "Select Speciality",
+                    border: OutlineInputBorder(),
+                  ),
+                  value: _selectedSpeciality,
+                  items: _specialityOptions
+                      .map((_speciality) => DropdownMenuItem(
+                          value: _speciality, child: Text(_speciality)))
+                      .toList(),
+                  validator: (val) =>
+                      val.isEmpty ? "Please select a option" : null,
+                  onChanged: (val) => setState(() => _selectedSpeciality = val),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: RaisedButton.icon(
+                    onPressed: handleSubmitInfluencer,
+                    icon: Icon(Icons.add),
+                    label: Text("Add Influencer")),
+              )
+            ],
+          )),
     );
   }
 
   Future<void> pickImage() async {
     final pickedImage = await picker.getImage(source: ImageSource.gallery);
-    if(pickedImage != null){
+    if (pickedImage != null) {
       setState(() => _image = pickedImage);
     }
   }
 
   Future<void> handleSubmitInfluencer() async {
-    if(_formKey.currentState.validate()){
-      if(_image == null) {
+    if (_formKey.currentState.validate()) {
+      if (_image == null) {
         print("image not taken");
-      }else{
-        const String endpoint = "https://groombackend.herokuapp.com/api/v1/influencer";
+      } else {
+        const String endpoint = "http://134.209.158.65/api/v1/influencer";
         print(_image.path.split('/').last);
         print(_image.path.split('.').last);
 
@@ -264,12 +296,10 @@ class _AddInfluencerScreenState extends State<AddInfluencerScreen> {
         req.fields["country"] = _countryController.text ?? "";
         req.fields["speciality"] = _selectedSpeciality ?? "";
 
-        req.files.add(await http.MultipartFile.fromPath(
-          'image', 
-          _image.path, 
-          filename: _image.path.split('/').last, 
-          contentType: MediaType.parse("image/${_image.path.split('.').last}")
-        ));
+        req.files.add(await http.MultipartFile.fromPath('image', _image.path,
+            filename: _image.path.split('/').last,
+            contentType:
+                MediaType.parse("image/${_image.path.split('.').last}")));
 
         var resp = await req.send();
         print(resp.statusCode);
@@ -288,13 +318,13 @@ class _AddInfluencerScreenState extends State<AddInfluencerScreen> {
         //     "country": _countryController.text ?? "",
         //     "speciality": _selectedSpeciality ?? "",
         //     "image": await MultipartFile.fromFile(
-        //       _image.path, 
+        //       _image.path,
         //       filename: _image.path.split('/').last,
         //       contentType: new MediaType.parse("image/${_image.path.split('.').last}")
         //     )
         //     // "image": new UploadFileInfo(new File(_image.path), _image.path.split('/').last),
         //   });
-      
+
         // var res = await dio.post(endpoint, data: formData, options: RequestOptions(
         //   headers: {HttpHeaders.authorizationHeader : "Bearer $token"},
         // ));

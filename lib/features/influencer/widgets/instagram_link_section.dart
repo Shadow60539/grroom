@@ -5,43 +5,44 @@ import 'package:provider/provider.dart';
 class InstagramLinkSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20,
-            ),
-            Text('INSTAGRAM LINK'),
-            SizedBox(
-              width: 20,
-            ),
-            Expanded(
-              child: SizedBox(
-                child: TextField(
-                  onSubmitted: (value) {
-                    if (value.isNotEmpty) {
-                      Provider.of<AllProvider>(context, listen: false)
-                          .updateIgLink(value);
-                    }
-                  },
-                  decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.all(10),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(2),
-                          borderSide:
-                              BorderSide(color: Colors.black12, width: 1))),
+    return Consumer<AllProvider>(
+      builder: (context, provider, child) {
+        return Card(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 20,
                 ),
-                height: 40,
-              ),
+                Text('INSTAGRAM LINK'),
+                SizedBox(
+                  width: 20,
+                ),
+                Expanded(
+                  child: SizedBox(
+                    child: TextField(
+                      readOnly: true,
+                      decoration: InputDecoration(
+                          hintText:
+                              'https://www.instagram.com/${provider.igHandle}',
+                          contentPadding: const EdgeInsets.all(10),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(2),
+                              borderSide:
+                                  BorderSide(color: Colors.black12, width: 1))),
+                    ),
+                    height: 40,
+                  ),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+              ],
             ),
-            SizedBox(
-              width: 10,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:grroom/data/remote_fetch.dart';
+import 'package:grroom/features/admin/pages/handle_users_page.dart';
 import 'package:grroom/features/influencer/pages/handle_influencers_page.dart';
 import 'package:grroom/features/stylist/pages/handle_stylist_page.dart';
+import 'package:grroom/features/stylist/pages/stylist_page.dart';
 import 'package:grroom/models/influencer.dart';
 import 'package:grroom/models/stylist.dart';
 import 'package:grroom/utils/all_provider.dart';
@@ -22,6 +25,7 @@ class IndexPageState extends State<IndexPage> {
   final ValueNotifier<int> pageNumberNotifier = ValueNotifier<int>(0);
   DateTime currentBackPressTime;
   Future _future;
+  bool isAdmin = false;
 
   final ScrollController scrollController = ScrollController();
 
@@ -30,21 +34,35 @@ class IndexPageState extends State<IndexPage> {
           List<Influencer> influencersList,
           List<Stylist> stylistsList}) =>
       <Widget>[
-        HandleStylistPage(
-          scrollController: scrollController,
-          stylistsList: stylistsList,
-        ),
         HandleInfluencersPage(
           scrollController: scrollController,
           influencersList: influencersList,
+        ),
+        HandleStylistPage(
+          scrollController: scrollController,
+          stylistsList: stylistsList,
         ),
       ];
 
   @override
   void initState() {
     super.initState();
-    _future = Future.wait(
-        [RemoteFetch.getAllInfluencers(), RemoteFetch.getAllStylists()]);
+    FlutterSecureStorage().read(key: 'role').then((value) {
+      setState(() {
+        isAdmin = value == 'admin';
+      });
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    _future = Future.wait([
+      RemoteFetch.getAllInfluencers(),
+      RemoteFetch.getAllStylists(),
+      RemoteFetch.getConstants(
+          provider: Provider.of<AllProvider>(context, listen: false))
+    ]);
+    super.didChangeDependencies();
   }
 
   @override
@@ -116,13 +134,11 @@ class IndexPageState extends State<IndexPage> {
       },
       child: FutureBuilder(
         future: _future,
-        initialData: [
-          List.generate(1, (index) => Influencer.empty()),
-          List.generate(1, (index) => Stylist.empty())
-        ],
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
+            return Center(
+              child: Text(snapshot.error.toString()),
+            );
           }
           return ValueListenableBuilder(
               key: UniqueKey(),
@@ -130,7 +146,43 @@ class IndexPageState extends State<IndexPage> {
               builder: (BuildContext context, int value, Widget child) {
                 return SafeArea(
                   child: Scaffold(
-                    body: snapshot.data[0][0].id.isEmpty
+                    floatingActionButtonLocation:
+                        FloatingActionButtonLocation.miniStartFloat,
+                    floatingActionButton: isAdmin
+                        ? FloatingActionButton(
+                            heroTag: UniqueKey(),
+                            mini: true,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            backgroundColor: Colors.black87,
+                            child: FaIcon(
+                              FontAwesomeIcons.userGraduate,
+                              size: 12,
+                            ),
+                            onPressed: () =>
+                                Navigator.of(context).push(PageRouteBuilder(
+                                  pageBuilder: (BuildContext context,
+                                      Animation<double> animation,
+                                      Animation<double> secondaryAnimation) {
+                                    return HandleUsersPage();
+                                  },
+                                  transitionsBuilder: (BuildContext context,
+                                      Animation<double> animation,
+                                      Animation<double> secondaryAnimation,
+                                      Widget child) {
+                                    return SlideTransition(
+                                      position: new Tween<Offset>(
+                                        begin: const Offset(0.0, 1.0),
+                                        end: Offset.zero,
+                                      ).animate(CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeIn)),
+                                      child: child,
+                                    );
+                                  },
+                                )))
+                        : null,
+                    body: !snapshot.hasData
                         ? SpinKitPouringHourglass(
                             color: Colors.black87,
                             size: 20,
@@ -145,81 +197,76 @@ class IndexPageState extends State<IndexPage> {
                                     stylistsList: snapshot.data[1],
                                     influencersList: snapshot.data[0]),
                               ),
-                              Transform.translate(
-                                offset: Offset(-20, 0),
-                                child: Container(
-                                  height: kBottomNavigationBarHeight,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 50)
-                                          .copyWith(bottom: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black87,
-                                    borderRadius: BorderRadius.circular(500),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(500),
-                                    child: BottomNavigationBar(
-                                      backgroundColor: Colors.black87,
-                                      items: <BottomNavigationBarItem>[
-                                        BottomNavigationBarItem(
-                                          backgroundColor: Colors.white,
-                                          icon: FaIcon(
-                                            FontAwesomeIcons.userAlt,
-                                            size: 18,
-                                            color: pageNumberNotifier.value == 0
-                                                ? Colors.white
-                                                : Colors.grey,
-                                          ),
-                                          title: Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 4),
-                                            child: Text(
-                                              'Stylist',
-                                              style: TextStyle(
-                                                fontSize: 12.0,
-                                                color:
-                                                    pageNumberNotifier.value ==
-                                                            0
-                                                        ? Colors.white
-                                                        : Colors.grey,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              textAlign: TextAlign.center,
+                              Container(
+                                height: kBottomNavigationBarHeight,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 80)
+                                        .copyWith(bottom: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(500),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(500),
+                                  child: BottomNavigationBar(
+                                    backgroundColor: Colors.black87,
+                                    items: <BottomNavigationBarItem>[
+                                      BottomNavigationBarItem(
+                                        backgroundColor: Colors.white,
+                                        icon: FaIcon(
+                                          FontAwesomeIcons.userCircle,
+                                          size: 18,
+                                          color: pageNumberNotifier.value == 0
+                                              ? Colors.white
+                                              : Colors.grey,
+                                        ),
+                                        title: Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 4),
+                                          child: Text(
+                                            'Influencer',
+                                            style: TextStyle(
+                                              fontSize: 12.0,
+                                              color:
+                                                  pageNumberNotifier.value == 0
+                                                      ? Colors.white
+                                                      : Colors.grey,
+                                              fontWeight: FontWeight.w500,
                                             ),
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
-                                        BottomNavigationBarItem(
-                                          backgroundColor: Colors.white,
-                                          icon: FaIcon(
-                                            FontAwesomeIcons.userCircle,
-                                            size: 18,
-                                            color: pageNumberNotifier.value == 1
-                                                ? Colors.white
-                                                : Colors.grey,
-                                          ),
-                                          title: Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 4),
-                                            child: Text(
-                                              'Influencer',
-                                              style: TextStyle(
-                                                fontSize: 12.0,
-                                                color:
-                                                    pageNumberNotifier.value ==
-                                                            1
-                                                        ? Colors.white
-                                                        : Colors.grey,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              textAlign: TextAlign.center,
+                                      ),
+                                      BottomNavigationBarItem(
+                                        backgroundColor: Colors.white,
+                                        icon: FaIcon(
+                                          FontAwesomeIcons.userAlt,
+                                          size: 18,
+                                          color: pageNumberNotifier.value == 1
+                                              ? Colors.white
+                                              : Colors.grey,
+                                        ),
+                                        title: Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 4),
+                                          child: Text(
+                                            'Data',
+                                            style: TextStyle(
+                                              fontSize: 12.0,
+                                              color:
+                                                  pageNumberNotifier.value == 1
+                                                      ? Colors.white
+                                                      : Colors.grey,
+                                              fontWeight: FontWeight.w500,
                                             ),
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
-                                      ],
-                                      currentIndex: value,
-                                      fixedColor: Colors.redAccent,
-                                      onTap: _selectedTab,
-                                    ),
+                                      ),
+                                    ],
+                                    currentIndex: value,
+                                    fixedColor: Colors.redAccent,
+                                    onTap: _selectedTab,
                                   ),
                                 ),
                               ),

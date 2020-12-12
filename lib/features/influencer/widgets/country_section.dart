@@ -24,50 +24,62 @@ class _CountrySectionState extends State<CountrySection> {
         Provider.of<AllProvider>(context, listen: false)
             .updateCountry(widget.country);
       });
+    } else {
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Provider.of<AllProvider>(context, listen: false).updateCountry("India");
+      });
     }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20,
-            ),
-            Text('Country'),
-            SizedBox(
-              width: 50,
-            ),
-            Expanded(
-              child: SizedBox(
-                child: TextField(
-                  controller: controller,
-                  onChanged: (value) {
-                    if (value.isNotEmpty) {
-                      Provider.of<AllProvider>(context, listen: false)
-                          .updateCountry(value);
-                    }
-                  },
-                  decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.all(10),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(2),
-                          borderSide:
-                              BorderSide(color: Colors.black12, width: 1))),
+    return Consumer<AllProvider>(
+      builder: (context, provider, child) {
+        return Card(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: Text('Country'),
                 ),
-                height: 40,
-              ),
+                SizedBox(
+                  child: CountryListPick(
+                    initialSelection: 'in',
+                    pickerBuilder: (context, countryCode) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              countryCode.name,
+                              style: TextStyle(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.w300),
+                            ),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.black54,
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                    onChanged: (value) {
+                      provider.updateCountry(value.name);
+                    },
+                  ),
+                  height: 40,
+                ),
+              ],
             ),
-            SizedBox(
-              width: 10,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

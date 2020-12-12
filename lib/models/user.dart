@@ -1,6 +1,7 @@
 class UserModel {
   final String role;
   final bool isVerified;
+  final bool isDeleted;
   final String createdAt;
   final String id;
   final String firstName;
@@ -9,6 +10,7 @@ class UserModel {
 
   UserModel(
       {this.role,
+      this.isDeleted,
       this.isVerified,
       this.createdAt,
       this.firstName,
@@ -20,10 +22,11 @@ class UserModel {
     return UserModel(
         role: resp["role"],
         isVerified: resp["isVerified"],
+        isDeleted: resp["isDeleted"],
         createdAt: resp["createdAt"],
         firstName: resp["firstName"],
         lastName: resp["lastName"],
-        email: resp["email"], 
+        email: resp["email"],
         id: resp["_id"]);
   }
 }

@@ -4,39 +4,29 @@ import 'package:flutter/scheduler.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:provider/provider.dart';
 
-class EventsBuilder extends StatefulWidget {
-  final List<String> events;
+class GenderSection extends StatefulWidget {
+  final String selectedTypes;
 
-  const EventsBuilder({Key key, this.events}) : super(key: key);
+  const GenderSection({Key key, this.selectedTypes}) : super(key: key);
+
   @override
-  _EventsBuilderState createState() => _EventsBuilderState();
+  _GenderSectionState createState() => _GenderSectionState();
 }
 
-class _EventsBuilderState extends State<EventsBuilder> {
+class _GenderSectionState extends State<GenderSection> {
+  String _selectedTypes = '';
   bool isExpanded = false;
-  List<String> selectedEvent = [];
-
-  String selectedEventsString() {
-    if (selectedEvent.length < 3) {
-      String selectedEvents =
-          selectedEvent.toString().replaceAll('[', '').replaceAll(']', '');
-      return selectedEvents;
-    } else {
-      List<String> sE = selectedEvent.sublist(0, 2);
-      String selectedEvents =
-          sE.toString().replaceAll('[', '').replaceAll(']', '');
-      return '$selectedEvents, and ${selectedEvent.length - 2} more';
-    }
-  }
 
   @override
   void initState() {
-    if (widget.events != null) {
-      selectedEvent = widget.events;
+    if (widget.selectedTypes != null) {
+      _selectedTypes = widget.selectedTypes;
       SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         Provider.of<AllProvider>(context, listen: false)
-            .updateEventsOption(widget.events);
+            .updateGender(widget.selectedTypes);
       });
+    } else {
+      _selectedTypes = "Male";
     }
 
     super.initState();
@@ -45,8 +35,8 @@ class _EventsBuilderState extends State<EventsBuilder> {
   @override
   Widget build(BuildContext context) {
     return Consumer<AllProvider>(
-      builder: (context, value, child) {
-        selectedEvent = value.eventsOption;
+      builder: (context, provider, child) {
+        _selectedTypes = provider.gender;
         return Card(
           shape: RoundedRectangleBorder(
               borderRadius: isExpanded
@@ -56,73 +46,64 @@ class _EventsBuilderState extends State<EventsBuilder> {
                     )
                   : BorderRadius.zero),
           child: ExpansionTileCard(
+            baseColor: Colors.white,
+            expandedColor: Colors.white,
             onExpansionChanged: (value) {
               setState(() {
                 isExpanded = value;
               });
             },
-            animateTrailing: selectedEvent.isEmpty,
-            trailing: selectedEvent.isEmpty
+            elevation: 0,
+            title: Text(
+              'Gender',
+              style: TextStyle(fontSize: 14),
+            ),
+            animateTrailing: _selectedTypes.isEmpty,
+            trailing: _selectedTypes.isEmpty
                 ? Icon(Icons.arrow_drop_down)
                 : Text(
-                    selectedEventsString(),
+                    _selectedTypes,
                     style: TextStyle(
                         color: Colors.black54, fontWeight: FontWeight.w300),
                   ),
-            baseColor: Colors.white,
-            expandedColor: Colors.white,
-            elevation: 0,
-            title: Text(
-              'Events',
-              style: TextStyle(fontSize: 14),
-            ),
             children: [
               GridView.count(
                 physics: NeverScrollableScrollPhysics(),
                 crossAxisCount: 3,
                 mainAxisSpacing: 10,
                 shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 10)
-                    .copyWith(bottom: 20, left: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 20)
+                    .copyWith(bottom: 20),
                 crossAxisSpacing: 20,
-                childAspectRatio: 2.5,
+                childAspectRatio: 3,
                 children: Provider.of<AllProvider>(context)
-                    .baseEvents
+                    .baseGender
                     .map((e) => GestureDetector(
                           onTap: () {
-                            if (selectedEvent.contains(e)) {
-                              selectedEvent.remove(e);
-                            } else
-                              selectedEvent.add(e);
-                            Provider.of<AllProvider>(context, listen: false)
-                                .updateEventsOption(selectedEvent);
-                            //     Provider.of<AllProvider>(context, listen: false)
-                            // .updateInfluencerCode(value);
+                            provider.updateGender(e);
+                            provider.updateBodyShape({});
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 5),
                             alignment: Alignment.center,
                             child: Text(
                               e,
-                              textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 12,
-                                  color: selectedEvent.contains(e)
+                                  color: _selectedTypes == e
                                       ? Colors.white
                                       : Colors.black54),
                             ),
                             decoration: BoxDecoration(
                                 border:
                                     Border.all(width: 1, color: Colors.black12),
-                                color: selectedEvent.contains(e)
+                                color: _selectedTypes == e
                                     ? Colors.black87
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(2)),
                           ),
                         ))
                     .toList(),
-              ),
+              )
             ],
           ),
         );

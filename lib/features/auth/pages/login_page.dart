@@ -6,7 +6,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:grroom/features/auth/pages/signup_page.dart';
 import 'package:grroom/main.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,8 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = new TextEditingController();
 
   final client = http.Client();
-  final String _loginEndpoint =
-      "https://groombackend.herokuapp.com/api/v1/user/login";
+  final String _loginEndpoint = "http://134.209.158.65/api/v1/user/login";
 
   bool _isLoading = false;
   String _errorMessage;
@@ -80,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: ListView(
                   children: [
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.25,
+                      height: MediaQuery.of(context).size.height * 0.2,
                     ),
                     Text(
                       "Log In",

@@ -11,7 +11,7 @@ class FeedbackDialog extends StatefulWidget {
   final bool isSuccess;
   final String errorMessage;
 
-  FeedbackDialog({@required this.isSuccess, this.errorMessage});
+  FeedbackDialog({@required this.isSuccess, this.errorMessage = ''});
 
   @override
   _FeedbackDialogState createState() => _FeedbackDialogState();

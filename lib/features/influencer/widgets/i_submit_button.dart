@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:grroom/features/stylist/widgets/feedback_dialog.dart';
+import 'package:grroom/features/stylist/widgets/simple_dialog.dart';
 import 'package:grroom/utils/all_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -32,15 +33,11 @@ class _ISubmitButtonState extends State<ISubmitButton> {
     isImageDifferent = _provider.influencerPageImage != widget.networkImage;
 
     bool isAllOptionsChosen = (_provider.igHandle.isNotEmpty &&
-            _provider.firstName.isNotEmpty &&
             _provider.influencerPageImage.isNotEmpty &&
-            _provider.lastName.isNotEmpty &&
             _provider.followerCount != 0 &&
             _provider.counrty.isNotEmpty &&
             _provider.bodySize.isNotEmpty &&
-            _provider.bodyShape.isNotEmpty &&
-            _provider.speciality.isNotEmpty &&
-            _provider.underTone.isNotEmpty) ||
+            _provider.bodyShape.isNotEmpty) ||
         widget.isEdit;
 
     return AnimatedContainer(
@@ -57,6 +54,7 @@ class _ISubmitButtonState extends State<ISubmitButton> {
             side: BorderSide(color: Colors.black87, width: 2),
             borderRadius: BorderRadius.circular(5)),
         onPressed: () {
+          print(_provider.counrty.isNotEmpty);
           if (isLoading) {
           } else if (isAllOptionsChosen) {
             submitData(context);
@@ -99,6 +97,7 @@ class _ISubmitButtonState extends State<ISubmitButton> {
           'https://www.instagram.com/${provider.igHandle}'.toString(),
       "undertone": provider.underTone.toString(),
       "bodyShape": jsonEncode(provider.bodyShape),
+      "gender": provider.gender.toString(),
       "bodySize": provider.bodySize.toString(),
       "noOfFollower": provider.followerCount.toString(),
       "country": provider.counrty.toString(),
@@ -113,7 +112,7 @@ class _ISubmitButtonState extends State<ISubmitButton> {
       formData.files.add(MapEntry('image', image));
     }
     Dio dio = Dio();
-    dio.options.baseUrl = 'https://groombackend.herokuapp.com/api';
+    dio.options.baseUrl = 'http://134.209.158.65/api/v1';
     dio.options.headers = {
       HttpHeaders.authorizationHeader: "Bearer $bearerToken",
       "Content-Type": "multipart/form-data"
@@ -123,7 +122,7 @@ class _ISubmitButtonState extends State<ISubmitButton> {
 
     final response = widget.isEdit
         ? await dio
-            .patch('/v1/influencer/${widget.id}', data: formData)
+            .patch('/influencer/${widget.id}', data: formData)
             .catchError((onError) {
             DioError dioError = onError;
             errorMessage =
@@ -131,7 +130,7 @@ class _ISubmitButtonState extends State<ISubmitButton> {
             print(jsonDecode(dioError.response.toString()));
           })
         : await dio
-            .post('/v1/influencer', data: formData)
+            .post('/influencer', data: formData)
             .catchError((onError) {
             DioError dioError = onError;
             errorMessage =
@@ -144,10 +143,12 @@ class _ISubmitButtonState extends State<ISubmitButton> {
       isLoading = false;
     });
 
-    if (response?.statusCode == 201) {
+    print(response.data);
+
+    if (response?.statusCode == 201 || response?.statusCode == 200) {
       showDialog(
           context: context,
-          child: FeedbackDialog(
+          child: MySimpleDialog(
             isSuccess: true,
           ));
     } else {
